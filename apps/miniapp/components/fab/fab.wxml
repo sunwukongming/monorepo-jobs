@@ -1,0 +1,26 @@
+<view class="cursor-point">
+    <view
+        class="fab left-bottom"
+    >
+        <view class="fab-content {{isShow ? 'active' : ''}}" wx:if="{{isShow}}">
+            <view class="fab-menu {{isShow ? 'active' : ''}}" 
+                wx:for="{{content}}" 
+                wx:key="id" 
+                data-id="{{item.id}}"
+                data-index="{{index}}"
+                bindtap="onClickMenu">
+                <view class="icon">
+                    <van-icon name="{{item.icon}}" size="60rpx"></van-icon>
+                </view>
+                <view class="text">{{item.name}}</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="fab-btn left-bottom" bindtap="clickBtn">
+        <van-icon name="/assets/discover/arrow.png" wx:if="{{isShow}}"></van-icon>
+        <van-icon name="/assets/discover/menu.png" wx:else></van-icon>
+    </view>
+
+    <view class="fab-mask {{isShow ? 'active' : ''}}" wx:if="{{isShow}}"></view>
+</view>

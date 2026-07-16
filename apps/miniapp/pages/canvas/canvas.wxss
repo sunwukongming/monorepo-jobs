@@ -1,0 +1,20 @@
+.wrapper {
+    background-color: #F6F7FA;
+    padding-bottom: 120rpx;
+}
+
+.action {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 750rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border-top: 1px solid #E4E6EB;
+    padding: 10rpx 32rpx;
+    box-sizing: border-box;
+    padding-bottom: constant(safe-area-inset-bottom); /*兼容 IOS<11.2*/
+    padding-bottom: env(safe-area-inset-bottom); /*兼容 IOS>11.2*/
+}

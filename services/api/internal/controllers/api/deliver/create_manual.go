@@ -1,0 +1,133 @@
+package deliver
+
+import (
+	"app/db"
+	"app/internal/services"
+	"app/models/bolejiang"
+	"app/pkg/utils"
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+func CreateManualAction(c *gin.Context) {
+	type Request struct {
+		PassageId          int    `json:"passageId"`
+		PassageRecommendId int    `json:"passageRecommendId"`
+		Name               string `json:"Name"`
+		Mobile             string `json:"Mobile"`
+		Email              string `json:"Email"`
+		RecommendComment   string `json:"recommendComment"`
+		ResumeUrl          string `json:"resumeUrl"`
+	}
+	var request Request
+	var deliver bolejiang.Deliver
+	err := func() error {
+		if err := c.ShouldBindJSON(&request); err != nil {
+			return err
+		}
+		if strings.Trim(request.Name, " ") == "" {
+			return errors.New("候选人姓名不可为空")
+		}
+		if !utils.ValidateIsMobile(request.Mobile) {
+			return errors.New("候选人手机号格式不正确")
+		}
+		if strings.Trim(request.Email, " ") != "" && !utils.ValidateIsEmail(request.Email) {
+			return errors.New("候选人邮箱格式不正确")
+		}
+		if strings.Trim(request.RecommendComment, " ") == "" {
+			return errors.New("推荐评语不可为空")
+		}
+		if strings.Trim(request.ResumeUrl, " ") == "" {
+			return errors.New("请上传候选人简历")
+		}
+
+		//当前账号
+		accountId := services.AuthGetAccountID(c)
+		if accountId == "" {
+			return errors.New("用户不存在")
+		}
+		var currentAccount bolejiang.Account
+		ok, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("账号不存在")
+		}
+		if currentAccount.Mobile == request.Mobile {
+			return errors.New("无法推荐自己")
+		}
+
+		var passage bolejiang.Passage
+		ok, err = db.Default().Where("id = ?", request.PassageId).Get(&passage)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("职位数据不存在")
+		}
+
+		// 查询候选人是否应聘该职位
+		deliver = bolejiang.Deliver{}
+		ok, err = db.Default().Where("passage_id = ? and mobile = ? and is_real = 1", request.PassageId, request.Mobile).Get(&deliver)
+		if err != nil {
+			return err
+		}
+		if ok {
+			return errors.New("人选已被推荐或已应聘该职位，暂不能推荐")
+		}
+
+		deliver.PassageId = passage.Id
+		deliver.AccountId = 0
+		deliver.Name = request.Name
+		deliver.Mobile = request.Mobile
+		deliver.Email = request.Email
+		deliver.ResumeUrl = request.ResumeUrl
+		deliver.RecommendAccountId = currentAccount.Id
+		deliver.RecommendComment = request.RecommendComment
+		var passageRecommend bolejiang.PassageRecommend
+		if request.PassageRecommendId != 0 {
+			ok, err := db.Default().Where("id = ?", request.PassageRecommendId).Get(&passageRecommend)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return errors.New("推荐职位不存在")
+			}
+			if passage.Id != passageRecommend.PassageId {
+				return errors.New("职位和推荐不一致")
+			}
+			deliver.PassageRecommendId = passageRecommend.Id
+			deliver.PassageRecommendPath = passageRecommend.Path
+			deliver.PassageRecommendPathFull = passageRecommend.PathFull
+		} else {
+			deliver.PassageRecommendPath = ""
+		}
+		deliver.Type = 3
+		deliver.ProgressEid = 1
+		deliver.Progress = "已投递"
+		deliver.IsReal = 1
+		deliver.DeliverTime = time.Now().Unix()
+		deliver.CreatedTime = time.Now().Unix()
+		deliver.UpdatedTime = time.Now().Unix()
+		_, err = db.Default().Insert(&deliver)
+		if err != nil {
+			return err
+		}
+		if deliver.PassageRecommendId != 0 {
+			//services.CountUpdatePassageRecommend(deliver.PassageRecommendId)
+			services.CountUpdatePassageRecommendByPath(deliver.GetPassageRecommendFullPath())
+			services.CountUpdateAccount(deliver.RecommendAccountId)
+		}
+		services.CountUpdateAccount(deliver.AccountId)
+		return nil
+	}()
+	if err != nil {
+		services.ResponseError(c, -1, err.Error(), nil)
+		return
+	}
+	services.ResponseSuccess(c, deliver)
+}

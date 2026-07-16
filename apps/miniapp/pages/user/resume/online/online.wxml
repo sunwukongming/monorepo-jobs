@@ -1,0 +1,303 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="1"></navbar>
+
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+
+    <view class="panel userinfo">
+        <view class="image">
+            <image src="/assets/images/resume-bg.png" mode="aspectFill"/>
+        </view>
+
+        <view class="panel info-detail">
+            <view class="name" bindtap="toPage" data-path="../../info/info">
+                <view class="text">{{user.name}}</view>
+                <view class="icon">
+                    <van-icon name="/assets/icons/edit.png" size="{{editSize}}"></van-icon>
+                </view>
+            </view>
+            <view class="info-tag">
+                <view>{{user.workYear}}年工作经验</view>
+                <view>·</view>
+                <view>{{user.age}}岁</view>
+                <view>·</view>
+                <view>{{user.degree}}</view>
+            </view>
+            <view class="info-contact">
+                <view class="contact">
+                    <view class="icon">
+                        <van-icon name="/assets/icons/phone.png" size="36rpx"></van-icon>
+                    </view>
+                    <view class="text">{{user.mobile}}</view>
+                </view>
+                <view class="contact" wx:if="{{showWx}}">
+                    <view class="icon">
+                        <van-icon name="/assets/icons/wechat.png" size="36rpx"></van-icon>
+                    </view>
+                    <view class="text">{{user.wechat}}</view>
+                </view>
+            </view>
+        </view>
+    </view>
+    
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">个人优势</view>
+            <view class="icon" 
+                bindtap="toPage"
+                data-path="../../target/target" 
+                data-action="edit"                
+                data-index="{{firstTargetIndex}}"
+            >
+                <van-icon name="/assets/icons/edit.png" size="{{editSize}}"></van-icon>
+            </view>
+        </view>
+        <view class="panel-body">
+            <view class="text" wx:for="{{user.descriptions}}" wx:key="index">
+                {{item}}
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">求职状态</view>
+        </view>
+        <view class="panel-body">
+            <view class="form" bindtap="showPopupStatus">
+                <view class="text">{{user.currentState}}</view>
+                <view class="icon">
+                    <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">求职目标</view>
+        </view>
+        <view class="panel-body">
+            <view class="target" 
+                wx:for="{{targets}}"
+                wx:key="id"
+            >
+                <view class="target-title">
+                    <view class="left">
+                        <view class="text">{{item.destPosition}}</view>
+                        <view class="tag" wx:if="{{item.isFirst == 1}}">优选</view>
+                    </view>
+                    <view class="icon" 
+                        bindtap="toPage" 
+                        data-path="../../target/target" 
+                        data-action="edit"                
+                        data-index="{{index}}"
+                    >
+                        <van-icon name="/assets/icons/edit.png" size="{{editSize}}"></van-icon>
+                    </view>
+                </view>
+                <view class="target-group">
+                    <view class="text">薪资：{{item.destSalary}}</view>
+                    <view class="text">地区：{{item.destCity}}</view>
+                </view>
+                <view class="target-group">
+                    <view class="text">目标公司：{{item.destCompany}}</view>
+                </view>
+            </view>
+
+            <view class="btn" 
+                bindtap="toPage" 
+                data-path="../../target/target" 
+                data-action="add"
+            >
+                <view class="icon">
+                    <van-icon name="/assets/icons/add.png" size="{{addSize}}"></van-icon>
+                </view>
+                <view class="text">添加求职目标</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">工作经历</view>
+        </view>
+        <view class="panel-body">
+            <view class="work" 
+                wx:for="{{works}}"
+                wx:key="id"
+                bindtap="toPage" 
+                data-path="../../exp/work/index" 
+                data-action="edit"
+                data-index="{{index}}"
+            >
+                <view class="work-header">
+                    <view class="work-title">{{item.company}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                    </view>
+                </view>
+                <view class="work-body">
+                    <view class="work-group">
+                        <view class="text">职位：{{item.position}}</view>
+                        <view class="text">在职：{{item.startTime}} - {{item.endTime}}</view>
+                    </view>
+                    <view class="work-group">
+                        <view class="text">业绩：{{item.performance}}</view>
+                    </view>
+                    <view class="work-group">
+                        <view class="text">内容：{{item.content}}</view>
+                    </view>
+                </view>
+                <!-- <view class="work-footer">
+                    <view class="tag">融资</view>
+                    <view class="tag">管理</view>
+                    <view class="tag">投资</view>
+                </view> -->
+            </view>
+
+            <view class="btn" bindtap="toPage" data-path="../../exp/work/index" data-action="add">
+                <view class="icon">
+                    <van-icon name="/assets/icons/add.png" size="{{addSize}}"></van-icon>
+                </view>
+                <view class="text">添加工作经历</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">项目经历</view>
+        </view>
+        <view class="panel-body">
+            <view class="work" 
+                wx:for="{{projects}}"
+                wx:key="id"
+                bindtap="toPage" 
+                data-path="../../exp/project/index" 
+                data-action="edit"
+                data-index="{{index}}"
+            >
+                <view class="work-header">
+                    <view class="work-title">{{item.name}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                    </view>
+                </view>
+                <view class="work-body">
+                    <view class="work-group">
+                        <view class="text">职位：{{item.role}}</view>
+                        <view class="text">在职：{{item.startTime}} - {{item.endTime}}</view>
+                    </view>
+                    <view class="work-group">
+                        <view class="text">业绩：{{item.performance}}</view>
+                    </view>
+                    <view class="work-group">
+                        <view class="text">内容：{{item.description}}</view>
+                    </view>
+                </view>
+            </view>
+
+            <view class="btn" bindtap="toPage" data-path="../../exp/project/index" data-action="add">
+                <view class="icon">
+                    <van-icon name="/assets/icons/add.png" size="{{addSize}}"></van-icon>
+                </view>
+                <view class="text">添加项目经历</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">教育经历</view>
+        </view>
+        <view class="panel-body">
+            <view class="edu" 
+                wx:for="{{educations}}"
+                wx:key="id"
+                bindtap="toPage" 
+                data-path="../../exp/edu/index" 
+                data-action="edit"
+                data-index="{{index}}"
+            >
+                <view class="edu-info">
+                    <view class="school">{{item.name}}</view>
+                    <view class="edu-group">
+                        <view class="text">学历：{{item.degree}}</view>
+                        <view class="text">时间：{{item.startTime}} - {{item.endTime}}</view>
+                    </view>
+                </view>
+                <view class="icon">
+                    <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                </view>
+            </view>
+
+            <view class="btn" bindtap="toPage" data-path="../../exp/edu/index" data-action="add">
+                <view class="icon">
+                    <van-icon name="/assets/icons/add.png" size="{{addSize}}"></van-icon>
+                </view>
+                <view class="text">添加教育经历</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">附件简历</view>
+        </view>
+
+        <view class="panel-body">
+            <view class="icon" wx:if="{{user.resumeUrl}}" bind:tap="showResume">
+                <van-icon size="130rpx" name="/assets/icons/link.png"></van-icon>
+            </view>
+            <view wx:else>
+                <van-empty description="暂无简历附件" />
+            </view>
+        </view>
+
+        <view class="btn" bindtap="uploadResume">
+            <view class="icon">
+                <van-icon name="/assets/icons/add.png" size="{{addSize}}"></van-icon>
+            </view>
+            <view class="text" wx:if="{{user.resumeUrl}}">重传简历</view>
+            <view class="text" wx:else>添加简历</view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">个人标签</view>
+            <view class="icon" bindtap="toPage" data-path="../../tag/tag">
+                <van-icon name="/assets/icons/edit.png" size="{{editSize}}"></van-icon>
+            </view>
+        </view>
+        <view class="panel-body">
+            <view class="tag-container">
+                <view class="tag-item" wx:for="{{user.tagItems}}" wx:key="item" bindtap="delTag" data-index="{{index}}">
+                    <text>{{item}}</text>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <!-- <view class="btn btn-import">
+        <view class="icon">
+            <van-icon name="/assets/icons/import.png" size="60rpx"></van-icon>
+        </view>
+        <view class="text">导入已有简历</view>
+    </view> -->
+</view>
+
+<popup 
+    show="{{popup.status}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{statuses}}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupStatus"
+    bind:cancel="closePopupStatus"
+    />
+</popup>

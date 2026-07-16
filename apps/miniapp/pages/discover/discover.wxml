@@ -1,0 +1,84 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="0"></navbar>
+    <view class="swiper-container">
+        <swiper class="swiper-wrapper" bindchange="swiperChange" 
+            indicator-dots="{{swiper.indicatorDots}}" 
+            autoplay="{{swiper.autoplay}}" 
+            interval="{{swiper.interval}}" 
+            duration="{{swiper.duration}}"
+            circular="{{swiper.circular}}"
+            previous-margin="50rpx"
+            next-margin="50rpx"
+        >
+            <block wx:for="{{swiper.items}}" wx:key="id">
+                <swiper-item class="swiper-item">
+                    <view class="swiper-image-container" bindtap="bannerToPage" data-id="{{item.id}}">
+                        <image class="swiper-image" src="{{item.url}}"></image>
+                    </view>
+                </swiper-item>
+            </block>
+        </swiper>
+        <view class="swiper-dots">
+            <block wx:for="{{swiper.items}}" wx:key="index">
+              <view class="dot-item {{index == swiper.current ? ' active' : ''}}"></view>
+            </block>
+        </view>
+    </view>
+
+    <van-sticky offset-top="{{fixedHeight}}">
+        <view class="search-wrapper">
+            <view class="search-container">
+                <view class="search-icon">
+                    <image src="/assets/icons/search.png"></image>
+                </view>
+                <input class="search-input" placeholder="请输入您想找的内容关键词" 
+                    bindconfirm="keywordSearch" 
+                    bindinput="searchInput"
+                    confirm-type="search"
+                    value="{{keyword}}"></input>
+                <view class="close-icon" wx:if="{{showClose}}" bindtap="clearSearchInput">
+                    <image src="/assets/icons/close-o.png"></image>
+                </view>
+            </view>
+        </view>
+    </van-sticky>
+    <view class="content-container" style="height: calc(100vh - 100rpx - {{fixedHeight}}px);">
+        <view class="category-wrapper">
+            <view class="category {{item.active}}" 
+                wx:for="{{menus}}" 
+                wx:key="id" 
+                bindtap="clickMenu" 
+                data-id="{{item.id}}"
+                data-index="{{index}}"
+            >
+                <view class="category-icon">
+                    <van-icon wx:if="{{item.active}}" name="/assets/discover/{{item.icon}}-active.png" size="60rpx"></van-icon>
+                    <van-icon wx:else name="/assets/discover/{{item.icon}}.png" size="60rpx"></van-icon>
+                </view>
+                <view class="category-title">{{item.name}}</view>
+            </view>
+        </view>
+        <scroll-view class="article-wrapper" scroll-y="{{true}}" bindscrolltolower="refreshList">
+            <view class="article" 
+                bindtap="toDetail" 
+                data-id="{{item.id}}"
+                wx:for="{{items[activeIndex]}}"
+                wx:key="id"
+            >
+                <view class="article-title">
+                    <view class="text">{{item.title}}</view>
+                    <view class="tag" wx:if="{{item.isTop == 1}}">置顶</view>
+                </view>
+                <view class="article-content">{{item.digest}}</view>
+                <view class="article-footer">
+                    <view class="publisher">发布者：{{item.pulisher}}</view>
+                    <view class="datetime">{{item.datetime}}</view>
+                </view>
+            </view>
+
+            <van-empty wx:if="{{items[activeIndex].length == 0}}" description="暂无数据"></van-empty>
+
+            <divider contentPosition="center" wx:if="{{!hasMore[activeIndex] && items[activeIndex].length > 0}}">~ 我是有底部的哦 ~</divider>
+        </scroll-view>
+    </view>
+</view>

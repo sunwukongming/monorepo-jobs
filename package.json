@@ -1,0 +1,18 @@
+{
+  "name": "jobs-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm run dev -w @jobs/admin",
+    "build:admin": "npm run build -w @jobs/admin",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "gen:api": "./tooling/scripts/gen-api.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

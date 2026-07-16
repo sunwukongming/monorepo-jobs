@@ -1,0 +1,28 @@
+.item {
+    height: 130rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 44rpx 0 32rpx;
+    border-bottom: 1px solid #E1E2E6;
+}
+
+.title {
+    font-size: 30rpx;
+    font-weight: bold;
+    color: #181818;
+    line-height: 42rpx;
+    margin-bottom: 12rpx;
+}
+
+.icon {
+    width: 24rpx;
+    height: 24rpx;
+}
+
+.popup-item {
+    height: 100rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

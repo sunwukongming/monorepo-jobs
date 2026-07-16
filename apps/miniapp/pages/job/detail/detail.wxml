@@ -1,0 +1,235 @@
+<view class="container">
+    <navbar title="求职需求详情" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="wrapper">
+        <view class="panel">
+            <view class="panel-title">
+                <view class="title-text">目标职位</view>
+                <view class="title-time">{{item.updatedAt}}</view>
+            </view>
+            <view class="job">{{item.destPosition}}</view>
+            <view class="job-info">
+                <view class="info-group">
+                    <view class="symbol"></view>
+                    <view class="label">目前状态：</view>
+                    <view class="value">{{item.currentState}}</view>
+                </view>
+                <view class="info-group">
+                    <view class="symbol"></view>
+                    <view class="label">目标城市：</view>
+                    <view class="value">{{item.destCity}}</view>
+                </view>
+                <view class="info-group">
+                    <view class="symbol"></view>
+                    <view class="label">目标行业：</view>
+                    <view class="value">{{item.destIndustry}}</view>
+                </view>
+                <view class="info-group">
+                    <view class="symbol"></view>
+                    <view class="label">目标公司：</view>
+                    <view class="value">{{item.destCompany}}</view>
+                </view>
+                <view class="info-group">
+                    <view class="symbol"></view>
+                    <view class="label">目标待遇：</view>
+                    <view class="value">{{item.destSalary}}</view>
+                </view>
+                
+            </view>
+        </view>
+
+        <view class="panel help-container" wx:if="{{item.helpRewardToC > 0}}">
+            <view class="help-title">协助奖金：</view>
+            <view class="help-value">{{item.helpRewardToC}} 元</view>
+            <view class="help-info" bind:tap="toHelpPlanRule">奖金说明?</view>
+        </view>
+
+        <view class="panel">
+            <view class="panel-title">个人优势</view>
+            <view class="text" wx:for="{{item.descriptions}}" wx:key="index" wx:for-item="desc" bindlongpress="copyContent">{{desc}}</view>
+            <!-- <view class="panel-title second">经纪人联系方式(手机&微信)</view>
+            <view class="text" bindtap="clickPhoneNumber">{{18620380850}}</view> -->
+        </view>
+
+        <view class="panel help-container">
+            <view class="help-title">附件简历：</view>
+            <view class="download-link" bind:tap="showResume">点击查看</view>
+        </view>
+
+        <view class="wrapper-title">相关人才</view>
+
+        <view class="panel" wx:for="{{similarItems}}" wx:key="id" bindtap="toDetail" data-id="{{item.id}}">
+            <view class="job">{{item.destPosition}}</view>
+            <view class="job-info">
+                <view class="info-group">
+                    <view class="label">目标公司：</view>
+                    <view class="value">{{item.destCompany}}</view>
+                </view>
+                <view class="info-group">
+                    <view class="label">目标城市：</view>
+                    <view class="value">{{item.destCity}}</view>
+                </view>
+            </view>
+            <view class="job-user">{{item.description}}</view>
+            <view class="panel-footer">
+                <view class="date">{{item.updatedAt}}</view>
+                <view class="except">目标待遇：{{item.destSalary}}</view>
+            </view>
+        </view>
+    </view>
+</view>
+
+<view class="action">
+    <view class="action-content">
+        <view class="left">
+            <view class="group" bindtap="openModal">
+                <view class="icon">
+                    <image src="/assets/icons/share.png"></image>
+                </view>
+                <text>分享</text>
+            </view>
+            <view class="group" bindtap="onCollect">
+                <view class="icon">
+                    <image src="/assets/icons/star-light.png" wx:if="{{!item.isLike}}"></image>
+                    <image src="/assets/icons/star-fill.png" wx:else></image>
+                </view>
+                <text>收藏</text>
+            </view>
+            <button class="group no-btn"  
+                open-type="contact"
+                show-message-card="{{true}}"
+                send-message-title="{{item.title}}"
+            >
+                <view class="icon">
+                    <image src="/assets/icons/service.png"></image>
+                </view>
+                <text>咨询</text>
+            </button>
+        </view>
+        <view class="right">
+            <button class="btn-save" open-type="contact" 
+                show-message-card="{{true}}"
+                send-message-title="{{item.destPosition}}" wx:if="{{item.helpRewardToC == 0}}"
+            >HR联系入口</button>
+            <button class="btn-save" bind:tap="showHelpModal" wx:else>提供协助</button>
+        </view>
+    </view>
+</view>
+
+<view class="modal-container" wx:if="{{showModal}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-header">
+            <text class="modal-title">选择分享方式</text>
+        </view>
+        <view class="modal-body">
+            <button class="menu-btn" bindtap="toCanvas" data-type="2">
+                <view class="icon">
+                    <image src="/assets/icons/has-award.png"></image>
+                </view>
+                <text>生成卡片</text>
+            </button>
+            <button class="menu-btn" open-type="share">
+                <view class="icon">
+                    <image src="/assets/icons/sharetowx.png"></image>
+                </view>
+                <text>分享给好友或群聊</text>
+            </button>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="closeModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+
+<action-sheet
+  show="{{ showAction }}"
+  actions="{{ actions }}"
+  description="{{actionTitle}}"
+  bind:select="onActionClick"
+  cancel-text="取消"
+  bind:cancel="closeAction"
+/>
+
+<!-- 提供协助弹窗 -->
+<view class="modal-container" wx:if="{{showHelpModal}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-header">
+            <text class="modal-title">温馨提示</text>
+        </view>
+        <view class="modal-body">
+            <view class="help-tips">
+                感谢您为该用户提供求职帮助，请填写您所在公司（选填）、职位信息（选填）以及简要的协助计划（必填），奖聘顾问会与您及时联系，一起为该用户提供高质量的协助求职服务！
+            </view>
+            <view class="form">
+                <van-cell-group>
+                    <van-field 
+                        label="公司名称"
+                        value="{{ helpForm.company }}"
+                        placeholder="请输入您所在公司名称(选填)"
+                        data-field="company"
+                        placeholder-style="font-size: 24rpx;"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-field 
+                        label="担任职位" 
+                        placeholder="请输入您所担任职位(选填)" 
+                        placeholder-style="font-size: 24rpx;"
+                        value="{{ helpForm.position }}"
+                        data-field="position"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-field 
+                        label="协助计划" 
+                        placeholder="请输入协助计划(如：可帮忙推荐给xx公司xx部门xx职位，并提供必要的信息支持)"
+                        value="{{ helpForm.helpPlan }}"
+                        type="textarea"
+                        data-field="helpPlan"
+                        autosize="{{textarea}}"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+            </view>
+            <view class="btn-container">
+                <view class="btn-primary" bind:tap="submitHelpModal">确认提交</view>
+            </view>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="closeHelpModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+
+<van-action-sheet
+  show="{{ showLogin }}"
+>
+    <view class="login-container">
+        <view class="login-tips">
+            <view class="tips-title">
+                <text>欢迎加入奖聘</text>
+                <text class="open-privacy" bindtap="openPrivacy">查看协议</text>
+            </view>
+            <view class="tips-desc">加入后，自荐简历有礼包，推荐牛人拿奖金！</view>
+        </view>
+        <view class="login-action">
+            <button 
+                class="login-btn"
+                open-type="getPhoneNumber|agreePrivacyAuthorization" 
+                bind:getphonenumber="getPhoneNumber"
+                bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+            >
+                同意隐私协议并授权手机号
+            </button>
+            <view class="login-cancel" bindtap="loginCancel">暂时跳过</view>
+        </view>
+    </view>
+</van-action-sheet>

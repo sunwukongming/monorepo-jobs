@@ -1,0 +1,122 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="1"></navbar>
+
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">个人信息</view>
+        </view>
+        <view class="panel-body">
+            <view class="group">
+                <view class="label">姓名</view>
+                <view class="value">
+                    <input placeholder-class="placeholder" type="text" placeholder="请输入姓名" value="{{form.name}}" data-name="name" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group" bindtap="showPopupSex">
+                <view class="label">性别</view>
+                <view class="value">
+                    <view class="value-text">{{form.gender}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group" bindtap="showPopupWorkTime">
+                <view class="label">参加工作时间</view>
+                <view class="value">
+                    <view class="value-text">{{form.workday}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group" bindtap="showPopupBirthday">
+                <view class="label">出生年月日</view>
+                <view class="value">
+                    <view class="value-text">{{form.birthday}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">手机号</view>
+                <button class="value no-btn"
+                    open-type="getPhoneNumber" 
+                    bind:getphonenumber="getPhoneNumber"
+                >
+                    <view class="value-text">{{form.mobile}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="{{arrowSize}}"></van-icon>
+                    </view>
+                </button>
+            </view>
+
+            <view class="group" wx:if="{{showWx}}">
+                <view class="label">微信号</view>
+                <view class="value">
+                    <input placeholder-class="placeholder" type="text" placeholder="请输入微信号" value="{{form.wechat}}" data-name="wechat" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">邮箱</view>
+                <view class="value">
+                    <input placeholder-class="placeholder" type="text" placeholder="请输入邮箱" value="{{form.email}}" data-name="email" bindinput="changeValue"/>
+                </view>
+            </view>
+        </view>
+    </view>
+</view>
+
+<view class="operation-container">
+    <view class="btn btn-del" bindtap="goBack">取消</view>
+    <view class="btn btn-save" bindtap="submit">保存</view>
+</view>
+
+<popup 
+    show="{{popup.sex}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{['男', '女', '保密']}}"
+    default-index="{{ 0 }}"
+    bind:confirm="confirmPopupSex"
+    bind:cancel="closePopupSex"
+    />
+</popup>
+
+<popup 
+    show="{{popup.workTime}}" 
+    position="bottom" 
+>
+    <van-picker
+        show-toolbar
+        columns="{{workTime}}"
+        bind:confirm="confirmPopupWorkTime"
+        bind:cancel="closePopupWorkTime"
+        bind:change="changePopupWorkTime"
+    />
+</popup>
+
+<popup 
+    show="{{popup.birthday}}" 
+    position="bottom" 
+>
+    <van-picker
+        show-toolbar
+        columns="{{birthday}}"
+        bind:confirm="confirmPopupBirthday"
+        bind:cancel="closePopupBirthday"
+        bind:change="changePopupBirthday"
+    />
+</popup>

@@ -1,0 +1,14 @@
+<view class="container">
+    <navbar title="选择城市" showBackBtn="1"></navbar>
+
+    <tree-select 
+        height="auto"
+        items="{{items}}"
+        main-active-index="{{ mainActiveIndex }}"
+        active-id="{{ activeId }}"
+        bind:click-nav="onClickNav"
+        bind:click-item="onClickItem"
+        max="1"
+    >
+    </tree-select>
+</view>

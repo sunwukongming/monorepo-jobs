@@ -1,0 +1,194 @@
+<view class="container">
+    <navbar title="我的" showBackBtn="0"></navbar>
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+    <view class="panel userinfo">
+        <view class="base-info">
+            <view class="avatar" bindtap="toPage" data-path="./info/info">
+                <van-image round width="130rpx" height="130rpx" src="{{}}" />
+            </view>
+            <view class="name">
+                <view class="nickname" bindtap="toPage" data-path="./info/info">{{userInfo.name}}</view>
+                <view class="tips" bindtap="toPage" data-path="./resume/online/online">
+                    <text>我的在线简历</text>
+                    <van-icon name="/assets/icons/edit.png" size="36rpx"></van-icon>
+                </view>
+            </view>
+        </view>
+        <view class="package">
+            <view class="item" bindtap="showTips">
+                <view class="number">{{userInfo.reward}}</view>
+                <view class="label">奖金</view>
+            </view>
+            <view class="item" bindtap="toSelfRecommend">
+                <view class="number">{{userInfo.selfRecommend}}</view>
+                <view class="label">自荐记录</view>
+            </view>
+            <view class="item" bindtap="toRecommend">
+                <view class="number">{{userInfo.recommend}}</view>
+                <view class="label">推荐记录</view>
+            </view>
+            <view class="item" bindtap="toPage" data-path="./collection/collection">
+                <view class="number">{{userInfo.collect}}</view>
+                <view class="label">收藏</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">求职状态</view>
+        </view>
+        <view class="panel-body">
+            <view class="menu" bindtap="showPopupStatus">
+                <view class="label">{{userInfo.currentState}}</view>
+                <view class="arrow">
+                    <van-icon name="/assets/icons/arrow-right.png"></van-icon>
+                </view>
+            </view>
+        </view>    
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">
+                <view class="title-first">求职目标</view>
+                <view class="title-second">(可选是否支付协助奖金)</view>
+                <view class="title-help" bind:tap="toHelpPlanRule">
+                    <image src="/assets/icons/help.png" mode=""/>
+                </view>
+            </view>
+            <view class="header-symbol" bindtap="toPage" data-path="./target/target" data-action="add">
+                <van-icon name="/assets/icons/add-active.png" size="40rpx"></van-icon>
+            </view>
+        </view>
+        <view class="panel-body">
+            <view class="target" 
+                wx:for="{{targets}}" 
+                wx:key="id"  
+                bindtap="toPage" 
+                data-path="./target/target" 
+                data-action="edit"
+                data-index="{{index}}"
+            >
+                <view class="target-title">
+                    <view class="left">
+                        <view class="text">{{item.destPosition}}</view>
+                        <view class="tag" wx:if="{{item.isFirst == 1}}">优选</view>
+                    </view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/edit.png" size="40rpx"></van-icon>
+                    </view>
+                </view>
+                <view class="target-content">
+                    <view class="group">
+                        <view class="label">薪资：</view>
+                        <view class="value">{{item.destSalary}}</view>
+                    </view>
+                    <view class="group">
+                        <view class="label">地区：</view>
+                        <view class="value">{{item.destCity}}</view>
+                    </view>
+                    <view class="group">
+                        <view class="label">目标公司：</view>
+                        <view class="value">{{item.destCompany}}</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">常用入口</view>
+        </view>
+        <view class="panel-body">
+            <view class="function-container">
+                <view class="function" bindtap="toPage" data-path="./resume/online/online">
+                    <view class="icon">
+                        <van-icon size="{{menuSize}}" name="/assets/icons/file.png"></van-icon>
+                    </view>
+                    <view class="text">在线简历</view>
+                </view>
+                <view class="function" bindtap="uploadResume">
+                    <view class="icon">
+                        <van-icon size="{{menuSize}}" name="/assets/icons/folder.png"></van-icon>
+                    </view>
+                    <view class="text">附件简历</view>
+                </view>
+                <view class="function" bindtap="targetToTop">
+                    <view class="icon">
+                        <van-icon size="{{menuSize}}" name="/assets/icons/cloud.png"></van-icon>
+                    </view>
+                    <view class="text">置顶求职</view>
+                </view>
+                <view class="function" bindtap="toContact">
+                    <view class="icon">
+                        <van-icon size="{{menuSize}}" name="/assets/icons/contact.png"></van-icon>
+                    </view>
+                    <view class="text">关于奖聘</view>
+                </view>
+            </view>
+        </view>
+    </view>
+    
+    <view class="divider">
+        <divider contentPosition="center">Copyright © {{year}} 奖聘. All rights reserved.</divider>
+    </view>
+</view>
+
+<popup 
+    show="{{popup.status}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{statuses}}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupStatus"
+    bind:cancel="closePopupStatus"
+    />
+</popup>
+
+<modal show="{{showContactModal}}" title="联系奖聘" bind:close="onCloseContactModal">
+    <view class="modal-content">
+        <view class="qrcode">
+            <image src="https://bolejiang.oss-cn-beijing.aliyuncs.com/images/qrcode.jpg" show-menu-by-longpress="{{true}}"></image>
+        </view>
+        <view class="tips">有任何使用上的问题，或者有合作需求，欢迎与我们客服联系，我们将竭诚为您服务！</view>
+    </view>
+</modal>
+
+<van-action-sheet
+  show="{{ showLogin }}"
+>
+    <view class="login-container">
+        <view class="login-tips">
+            <view class="tips-title">
+                <text>欢迎加入奖聘</text>
+                <text class="open-privacy" bindtap="openPrivacy">查看协议</text>
+            </view>
+            <view class="tips-desc">加入后，自荐简历有礼包，推荐牛人拿奖金！</view>
+        </view>
+        <view class="login-action">
+            <button 
+                class="login-btn"
+                open-type="getPhoneNumber|agreePrivacyAuthorization" 
+                bind:getphonenumber="getPhoneNumber"
+                bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+            >
+                同意隐私协议并授权手机号
+            </button>
+            <view>
+                <view class="login-cancel" bindtap="goBack">暂时跳过</view>
+            </view>
+        </view>
+    </view>
+</van-action-sheet>
+
+<modal show="{{showUploadModal}}" showClose="{{ false }}" title="上传进度">
+    <view class="modal-content">
+        <van-circle value="{{ uploadProgress }}" text="{{ uploadTips }}" />
+    </view>
+</modal>

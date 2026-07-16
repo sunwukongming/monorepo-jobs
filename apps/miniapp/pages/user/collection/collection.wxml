@@ -1,0 +1,90 @@
+<view class="container">
+    <navbar title="我的收藏" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="search-wrapper">
+        <view class="search-container">
+            <view class="search-icon">
+                <image src="/assets/icons/search.png"></image>
+            </view>
+            <input class="search-input" placeholder="请输入职位关键词" 
+                bindconfirm="keywordSearchOffer" 
+                bindinput="onOfferSearchInput" 
+                confirm-type="search"
+                value="{{offer.keyword}}" wx:if="{{activeTab == 0}}"></input>
+            <input class="search-input" placeholder="请输入目标职位或目标公司关键词" 
+                bindconfirm="keywordSearchOffer" 
+                bindinput="onOfferSearchInput" 
+                confirm-type="search"
+                value="{{job.keyword}}" wx:if="{{activeTab == 1}}"></input>    
+            <view class="close-icon" wx:if="{{showClose}}" bindtap="clearSearchInput">
+                <image src="/assets/icons/close-o.png"></image>
+            </view>
+        </view>
+    </view>
+    <van-tabs active="{{ activeTab }}" bind:change="onChangeTab">
+        <van-tab title="职位">
+            <view class="list-wrapper">
+                <view class="list-item" wx:for="{{offers}}" wx:key="id" bindtap="toOfferDetail" data-id="{{item.id}}">
+                    <view class="item-title">
+                        <view class="left">
+                            <view class="text">{{item.title}}</view>
+                        </view>
+                        <view class="right">{{item.updateAt}}</view>
+                    </view>
+
+                    <view class="item-desc">{{item.liangdian}}</view>
+
+                    <view class="item-footer">
+                        <view class="left">
+                            <view class="location">
+                                <image src="/assets/icons/location.png"></image>
+                            </view>
+                            <view class="text">{{item.cityName}}</view>
+                            <view class="text">{{item.districtName}}</view>
+                        </view>
+                        <view class="right">
+                            <view class="text">年薪{{item.salaryMin}}-{{item.salaryMax}}万</view>
+                            <view class="symbol">·</view>
+                            <view class="text">奖金{{item.successReward}}</view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+            <divider contentPosition="center" wx:if="{{!offer.hasMore}}">~ 全部收藏加载完成 ~</divider>
+        </van-tab>
+        <van-tab title="求职">
+            <view class="list-wrapper job">
+                <view class="list-item" wx:for="{{jobs}}" wx:key="id" bindtap="toJobDetail" data-id="{{item.id}}">
+                    <view class="item-title">
+                        <view class="left">
+                            <view class="text">{{item.destPositionTag + ' / ' + item.destPosition}}</view>
+                        </view>
+                    </view>
+
+                    <view class="job-info">
+                        <view class="info-group">
+                            <view class="label">目标公司：</view>
+                            <view class="value">{{item.destCompany}}</view>
+                        </view>
+                        <view class="info-group">
+                            <view class="label">目标城市：</view>
+                            <view class="value">{{item.destCity}}</view>
+                        </view>
+                    </view>
+
+                    <view class="item-desc">{{item.description}}</view>
+
+                    <view class="item-footer">
+                        <view class="left">
+                            <view class="text">{{item.updateAt}}</view>
+                        </view>
+                        <view class="right">
+                            <view class="text">目标待遇：{{item.destSalary}}</view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+            <divider contentPosition="center" wx:if="{{!job.hasMore}}">~ 全部收藏加载完成 ~</divider>
+        </van-tab>
+    </van-tabs>
+</view>

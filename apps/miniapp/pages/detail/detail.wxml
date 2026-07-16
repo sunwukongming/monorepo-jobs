@@ -1,0 +1,482 @@
+<view class="container" bind:tap="closeModal">
+    <navbar title="职位详情" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="wrapper">
+        <view class="panel">
+            <view class="title">
+                <text>{{item.title}}</text>
+                <view class="icon">
+                    <image src="/assets/icons/fire.png"></image>
+                </view>
+            </view>
+            <view class="desc" bindlongpress="copyCompanyDesc">
+                {{item.liangdian}}
+            </view>
+        </view>
+
+        <view class="panel">
+            <view class="tags">
+                <view class="tag-item">
+                    <view class="header">
+                        <view class="icon">
+                            <image src="/assets/icons/salary.png"></image>
+                        </view>
+                        <view class="label">年薪</view>
+                    </view>
+                    <view class="footer">{{item.salaryMin}}-{{item.salaryMax}}万</view>
+                </view>
+                <view class="tag-item" bindtap="onShowBonusModal">
+                    <view class="header">
+                        <view class="icon">
+                            <image src="/assets/icons/bonus.png"></image>
+                        </view>
+                        <view class="label">自荐礼包</view>
+                    </view>
+                    <view class="footer">{{item.interviewReward}}</view>
+                    <view class="help">
+                        <image class="full" src="/assets/icons/help.png" mode="" />
+                    </view>
+                </view>
+                <view class="tag-item" bindtap="onShowAwardModal">
+                    <view class="header">
+                        <view class="icon">
+                            <image src="/assets/icons/award.png"></image>
+                        </view>
+                        <view class="label">推荐奖金</view>
+                    </view>
+                    <view class="footer">{{item.successReward}}</view>
+                    <view class="help">
+                        <image class="full" src="/assets/icons/help.png" mode="" />
+                    </view>
+                </view>
+            </view>
+        </view>
+
+        <view class="panel" style="padding: 0;" wx:if="{{item.isAnonymous == 0}}">
+            <view style="display: flex;gap: 24rpx;padding: 32rpx;" 
+                bind:tap="toCompany" data-id="{{rootCompany.id}}">
+                <view class="b-avatar">
+                    <van-image src="{{rootCompany.icon}}" width="132rpx" height="132rpx" radius="20rpx"></van-image>
+                </view>
+                <view class="b-info">
+                    <view class="b-title">{{rootCompany.simpleName}}</view>
+                    <rich-text class="b-desc" nodes="{{rootCompany.desc}}"></rich-text>
+                </view>
+            </view>
+            <view class="b-tags">
+                <view class="b-tag" wx:for="{{rootCompany.tags}}" wx:for-item="tag" wx:key="tag">{{tag}}</view>
+            </view>
+            <view class="b-footer">
+                <view bind:tap="toCompanyJob" data-id="{{rootCompany.id}}" style="display: flex;align-items: center;">
+                    <view style="display: flex;flex-direction: column;justify-content: center; align-items: center;margin-right: 16rpx;">
+                        <view style="position: relative; top: -2px;">{{rootCompany.passageAmount}}个公开有奖职位在招</view>
+                        <view>(更多私密高阶职位请咨询)</view>
+                    </view>
+                    <van-icon name="arrow" color="#CD833F" size="36rpx"></van-icon>
+                </view>
+            </view>
+        </view>
+
+        <view class="panel" style="display: flex;gap: 24rpx;" wx:if="{{item.isAnonymous == 1 && from.mode != 'singlePage'}}">
+            <view class="a-avatar">
+                <view>密招</view>
+                <view>职位</view>
+            </view>
+            <view class="a-info">
+                <view class="a-title">公司信息请详询奖聘顾问</view>
+                <view class="a-desc">密招职位需隐藏公司信息，最大限度防止信息泄露，敬请理解。</view>
+            </view>
+        </view>
+
+        <view style="margin-bottom: 10rpx;" wx:if="{{false && canShowCompany && showTips && item.isAnonymous == 1}}">
+            <van-notice-bar delay="3000" mode="closeable" color="#fff" background="#5ED5C8" text="公司信息查看权限与推荐数量有关，欢迎多推荐！">
+            </van-notice-bar>
+        </view>
+
+        <view class="panel" wx:if="{{item.isAnonymous == 1 && canShowCompany && from.mode != 'singlePage'}}">
+            <view class="sub-title">
+                <text>公司及项目简介：</text>
+                <text class="link" bindtap="clickShowCompany" wx:if="{{item.isAnonymous == 0}}">{{item.outName}}</text>
+                <text class="link" bindtap="clickShowCompany" wx:elif="{{canShowCompany}}">点击查看(可查看)</text>
+                <text class="link" bindtap="clickShowCompany" wx:else>点击查看</text>
+            </view>
+        </view>
+
+        <view class="panel">
+            <view class="sub-title">需求详情</view>
+            <view class="desc" bindlongpress="copyContent">
+                <!-- <view wx:for="{{item.sentences}}" wx:for-item="sentence" wx:key="index">{{sentence}}</view> -->
+                <rich-text nodes="{{item.content}}"></rich-text>
+            </view>
+        </view>
+        <view class="panel">
+            <view class="sub-title">工作地点</view>
+            <view class="desc">
+                <view>{{item.address}} </view>
+            </view>
+        </view>
+        <view class="panel">
+            <view class="sub-title">更新时间</view>
+            <view class="desc">
+                <view>{{item.updateAt}} </view>
+            </view>
+        </view>
+        <!-- <view class="panel">
+            <view class="sub-title">联系方式(手机&微信&简历接收邮箱)</view>
+            <view class="desc contact">
+                <view bindtap="clickPhoneNumber">{{item.contact}} </view>
+            </view>
+        </view> -->
+    </view>
+
+    <view class="relative-wrapper">
+        <view class="relative-text">相似职位</view>
+
+        <view class="list-wrapper">
+            <view class="list-item" wx:for="{{items}}" wx:key="id" bindtap="toDetail" data-id="{{item.id}}">
+                <view class="item-title">
+                    <view class="left">
+                        <view class="text">{{item.title}}</view>
+                        <view class="top" wx:if="{{item.isTop != 0}}">
+                            <image src="/assets/icons/fire.png"></image>
+                        </view>
+                    </view>
+                    <view class="right">{{item.updateAt}}</view>
+                </view>
+
+                <view class="item-desc">{{item.liangdian}}</view>
+
+                <view class="item-footer">
+                    <view class="left">
+                        <view class="location">
+                            <image src="/assets/icons/location.png"></image>
+                        </view>
+                        <view class="text">{{item.cityName}}</view>
+                        <view class="text">{{item.districtName}}</view>
+                    </view>
+                    <view class="right">
+                        <view class="text">年薪{{item.salaryMin}}-{{item.salaryMax}}万</view>
+                        <view class="symbol">·</view>
+                        <view class="text">推荐奖金：{{item.successReward}}</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="menu-container" bind:tap="openRecommendModal" wx:if="{{from.mode != 'singlePage'}}">
+        <view class="menu">
+            <van-icon name="orders-o" size="48rpx" color="white"></van-icon>
+        </view>
+        <view class="menu-tips" wx:if="{{showMenuTip}}">
+            <view class="tips-title">职位传递关系及推荐记录</view>
+        </view>
+    </view>
+</view>
+
+<view class="action" wx:if="{{from.mode != 'singlePage'}}">
+    <view class="action-content">
+        <view class="callout" wx:if="{{showCallout}}">
+            <view class="callout-title">分享即推荐</view>
+        </view>
+        <view class="left">
+            <view class="group" bindtap="openModal" data-title="选择分享方式">
+                <view class="icon">
+                    <image src="/assets/icons/share.png"></image>
+                </view>
+                <text>分享</text>
+            </view>
+            <view class="group" bindtap="onCollect">
+                <view class="icon">
+                    <image src="/assets/icons/star-light.png" wx:if="{{!item.isLike}}"></image>
+                    <image src="/assets/icons/star-fill.png" wx:else></image>
+                </view>
+                <text>收藏</text>
+            </view>
+            <button class="group no-btn" open-type="contact" show-message-card="{{true}}" send-message-title="{{item.title}}">
+                <view class="icon">
+                    <image src="/assets/icons/service.png"></image>
+                </view>
+                <text>咨询</text>
+            </button>
+        </view>
+        <view class="right">
+            <button class="btn-save" bind:tap="checkResumeBySelf">立即自荐</button>
+            <button class="btn-save" bindtap="openModal" data-title="选择协作操作方式">协作推荐</button>
+        </view>
+    </view>
+</view>
+
+<!-- 分享弹窗 -->
+<view class="modal-container" wx:if="{{false}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-header">
+            <text class="modal-title">{{shareTitle}}</text>
+        </view>
+        <view class="modal-body">
+            <view class="share-tips">
+                感谢您参与协作招聘，您只需点击以下功能生成专属链接或卡片分享给符合的人选。人选自荐后您可以在个人中心—推荐记录查看记录，人选入职后您将获得相应的推荐奖金！您也可以直接推荐简历及评语。
+            </view>
+            <button class="menu-btn" bind:tap="openMobileModal" wx:if="{{!user.mobile}}">
+                <view class="icon">
+                    <image src="/assets/icons/sharetowx.png"></image>
+                </view>
+                <text>生成专属分享链接</text>
+            </button>
+            <button class="menu-btn" open-type="share" wx:else>
+                <view class="icon">
+                    <image src="/assets/icons/sharetowx.png"></image>
+                </view>
+                <text>生成专属分享链接</text>
+            </button>
+            <button class="menu-btn" bindtap="toCanvas" data-type="2">
+                <view class="icon">
+                    <image src="/assets/icons/has-award.png"></image>
+                </view>
+                <text>生成专属分享卡片</text>
+            </button>
+            <button class="menu-btn" bind:tap="openMobileModal" wx:if="{{!user.mobile}}">
+                <view class="icon">
+                    <image src="/assets/icons/no-award.png"></image>
+                </view>
+                <text>复制专属链接及职位简介</text>
+            </button>
+            <button class="menu-btn" bindtap="copyShareLink" wx:else>
+                <view class="icon">
+                    <image src="/assets/icons/no-award.png"></image>
+                </view>
+                <text>复制专属链接及职位简介</text>
+            </button>
+            <button class="menu-btn" bindtap="openHelpModal">
+                <view class="icon">
+                    <image src="/assets/icons/resume.jpg"></image>
+                </view>
+                <text>直接推荐简历及评语</text>
+            </button>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="closeModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+
+<action-sheet show="{{ showAction }}" actions="{{ actions }}" description="{{actionTitle}}" bind:select="onActionClick" cancel-text="取消" bind:cancel="closeAction" />
+
+<dialog class-name="my-custom-class" use-slot title="{{companyModalTitle}}" show="{{ showCompanyModal }}" confirm-button-text="我知道了" show-confirm-button bind:close="onCloseCompanyDialog">
+    <scroll-view class="modal-content" scroll-y="true">
+        <view wx:if="{{canShowCompany || item.isAnonymous == 0}}">
+            <view class="company-title" wx:if="{{companyModalContent1.length > 0}}">职位调研</view>
+            <view class="company-remark" bindlongpress="copyCompanyRemark1" wx:if="{{companyModalContent1.length > 0}}">
+                <view class="sentence {{item == '' ? 'blank' : ''}}" wx:for="{{companyModalContent1}}" wx:key="index">{{item}}</view>
+            </view>
+            <view class="company-title">公司介绍</view>
+            <view class="company-remark" bindlongpress="copyCompanyRemark2">
+                <view class="sentence {{item == '' ? 'blank' : ''}}" wx:for="{{companyModalContent2}}" wx:key="index">{{item}}</view>
+            </view>
+        </view>
+        <view wx:else>
+            <view class="company-remark">
+                <view class="sentence {{item == '' ? 'blank' : ''}}" wx:for="{{companyModalContent}}" wx:key="index">{{item}}</view>
+            </view>
+        </view>
+    </scroll-view>
+</dialog>
+
+<!-- 推荐奖金介绍 -->
+<dialog class-name="my-custom-class" use-slot title="推荐奖金规则介绍" confirm-button-text="我知道了" show="{{ showAwardModal }}" show-confirm-button bind:close="onCloseAwardDialog">
+    <scroll-view class="modal-content" scroll-y="true">
+        <view class="company-remark" bindlongpress="copyAwardRemark">
+            <block wx:for="{{awardRules}}" wx:key="*this">
+                <view class="sentence">{{item}}</view>
+                <view class="sentence blank"></view>
+            </block>
+        </view>
+    </scroll-view>
+</dialog>
+
+<!-- 自荐奖金介绍 -->
+<dialog class-name="my-custom-class" use-slot title="自荐奖金规则介绍" confirm-button-text="我知道了" show="{{ showBonusModal }}" show-confirm-button bind:close="onCloseBonusDialog">
+    <scroll-view class="modal-content" scroll-y="true">
+        <view class="company-remark" bindlongpress="copyBonusRemark">
+            <block wx:for="{{bonusRules}}" wx:key="*this">
+                <view class="sentence">{{item}}</view>
+                <view class="sentence blank"></view>
+            </block>
+        </view>
+    </scroll-view>
+</dialog>
+
+<!-- 自荐时，有简历的弹窗 -->
+<view class="modal-container" wx:if="{{resumeModal}}">
+    <view class="backdrop"></view>
+    <view class="modal resume">
+        <view class="modal-body">
+            <view class="dialog-content">
+                <text>感谢您的自荐，您已有附件简历，请确认是否需要更新到最新简历。</text>
+                <text class="btn-update" bind:tap="uploadResume">去更新</text>
+            </view>
+            <view class="modal-action">
+                <view class="modal-btn" bind:tap="downResume">查看简历</view>
+                <view class="modal-btn confirm" bind:tap="showSelfConfirmModal">确认自荐</view>
+            </view>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="closeResumeModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+
+<dialog title="" message="您尚未登录，请先登录后继续" show="{{ mobileModal }}" show-cancel-button cancel-button-text="取消" confirm-button-text="登录" confirm-button-open-type="getPhoneNumber" bind:getphonenumber="getPhoneNumber">
+</dialog>
+
+<dialog use-slot title="温馨提示" show-cancel-button="{{showRecommendCancelButton}}" cancel-button-text="不接受" show-confirm-button confirm-button-text="{{recommendConfirmButtonText}}" show="{{ showRecommendModal }}" bind:cancel="onCancelRecommendDialog" confirm-button-color="#5ED5C8" close-on-click-overlay="{{true}}">
+    <view class="recommend-content">
+        <view class="text" wx:for="{{ recommendContent }}" wx:key="index">{{item}}</view>
+    </view>
+</dialog>
+
+<modal show="{{showUploadModal}}" showClose="{{ false }}" title="上传进度">
+    <view class="modal-content" style="display: flex;justify-content: center;padding-bottom: 32rpx;">
+        <van-circle value="{{ uploadProgress }}" text="{{ uploadTips }}" />
+    </view>
+</modal>
+
+<van-action-sheet show="{{ showLogin }}">
+    <view class="login-container">
+        <view class="login-tips">
+            <view class="tips-title">
+                <text>欢迎加入奖聘</text>
+                <text class="open-privacy" bindtap="openPrivacy">查看协议</text>
+            </view>
+            <view class="tips-desc">加入后，自荐简历有礼包，推荐牛人拿奖金！</view>
+        </view>
+        <view class="login-action">
+            <button class="login-btn" open-type="getPhoneNumber|agreePrivacyAuthorization" bind:getphonenumber="getPhoneNumber" bindagreeprivacyauthorization="handleAgreePrivacyAuthorization">
+                同意隐私协议并授权手机号
+            </button>
+            <view>
+                <view class="login-cancel" bindtap="hideLogin">暂时跳过</view>
+            </view>
+        </view>
+    </view>
+</van-action-sheet>
+
+<!-- 自荐确认弹窗 -->
+<view class="modal-container" wx:if="{{selfConfirmModal}}">
+    <view class="backdrop"></view>
+    <view class="modal resume">
+        <view class="modal-body">
+            <view class="dialog-content">
+                <text>请确认是否自荐简历？自荐简历后，奖聘顾问将跟您联系，您通过面试并成功入职后将获得专属的自荐大礼包！</text>
+            </view>
+            <view class="modal-action">
+                <view class="modal-btn" bind:tap="hideSelfConfirmModal">再考虑一下</view>
+                <view class="modal-btn confirm" bind:tap="deliverResume">确认</view>
+            </view>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="hideSelfConfirmModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+
+<!-- 提交推荐信息及简历 -->
+<view class="modal-container" wx:if="{{showHelpModal}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-header">
+            <text class="modal-title">提交推荐信息及简历</text>
+        </view>
+        <view class="modal-body">
+            <view class="help-tips">
+                欢迎提交候选人简历及推荐信息，推荐前需经候选人知情同意。推荐后奖聘顾问将与您联系信确认简历是否已在客户人才库及反馈简历筛选结果，简历通过后将与您一同推进后续流程，人选入职后按规则发放推荐奖金!
+            </view>
+            <view class="form">
+                <van-cell-group>
+                    <van-field 
+                        label="候选人姓名"
+                        value="{{ helpForm.name }}"
+                        placeholder="请输入候选人姓名"
+                        data-field="name"
+                        placeholder-style="font-size: 24rpx;"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-field 
+                        label="候选人手机" 
+                        placeholder="请输入候选人手机" 
+                        placeholder-style="font-size: 24rpx;"
+                        value="{{ helpForm.mobile }}"
+                        data-field="mobile"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-field 
+                        label="候选人邮箱" 
+                        placeholder="请输入候选人邮箱"
+                        value="{{ helpForm.email }}"
+                        data-field="email"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-field
+                        value=""
+                        readonly
+                        label="候选人简历"
+                        placeholder=""
+                        use-button-slot
+                        use-input-slot
+                    >
+                        <van-button slot="button" size="small" type="primary" bind:tap="uploadHelpResume">
+                        点击上传
+                        </van-button>
+                        <view slot="input">
+                            <view class="link" wx:if="{{helpForm.resumeUrl}}">
+                                <image class="icon" src="/assets/icons/link.png" mode=""/>
+                            </view>
+                        </view>
+                    </van-field>
+                </van-cell-group>
+                <van-cell-group>
+                    <van-field 
+                        label="推荐评语" 
+                        placeholder="请输入推荐评语"
+                        value="{{ helpForm.recommendComment }}"
+                        data-field="recommendComment"
+                        type="textarea"
+                        autosize="{{textarea}}"
+                        bind:change="onChangeHelpField" 
+                    />
+                </van-cell-group>
+            </view>
+            <view class="btn-container">
+                <view class="btn-primary" bind:tap="submitHelpModal">确认提交</view>
+            </view>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="closeHelpModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+
+<van-share-sheet
+  show="{{ showModal }}"
+  title="选择协作招聘方式"
+  description="专属分享链接已生成，分享给符合的人选或微信群即可，人选自荐后您可以在个人中心一推荐记录查看记录，人选入职后您将获得相应的推荐奖金。您也可以直接推荐候选人的简历。"
+  options="{{ shareOptions }}"
+  bind:select="onSelectOptions"
+  bind:close="closeModal"
+  overlay="{{false}}"
+/>

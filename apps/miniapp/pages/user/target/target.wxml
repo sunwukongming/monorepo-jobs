@@ -1,0 +1,168 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="1"></navbar>
+
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">
+                <view class="title-first">{{action == 'add' ? '添加' : '编辑'}}求职目标</view>
+                <view class="title-second">(可选是否支付协助奖金)</view>
+            </view>
+            <view class="panel-subtitle">目标坚定清晰，成功快人一步！</view>
+        </view>
+        <view class="panel-body">
+            <view class="group" bindtap="showPopupTarget">
+                <view class="label">求职类型</view>
+                <view class="value">
+                    <view class="value-text">{{form.target}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="36rpx"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group" bindtap="showPopupCity">
+                <view class="label">求职城市（多选）</view>
+                <view class="value">
+                    <view class="value-text">{{form.destCity}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="36rpx"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">目标职位</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入目标职位名称" value="{{form.destPosition}}" data-name="destPosition" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">薪资要求</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入目标薪资，建议用年薪范围" value="{{form.destSalary}}" data-name="destSalary" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group" bindtap="showPopupIndustry">
+                <view class="label">目标行业</view>
+                <view class="value">
+                    <view class="value-text">{{form.destIndustry}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="36rpx"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">目标公司</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入目标公司或方向描述" value="{{form.destCompany}}" data-name="destCompany" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label help-container">
+                    <view class="label-text">协助奖金</view>
+                    <view class="label-help" bind:tap="toHelpPlanRule">
+                        <image src="/assets/icons/help.png" mode=""/>
+                    </view>
+                    <view class="label-text">(不输入则不提供奖金,按传统方式求职)</view>
+                </view>
+                <view class="value">
+                    <input class="value-text" type="number" placeholder="请输入金额(建议不低于5000，不高于1月薪)" value="{{form.helpReward}}" data-name="helpReward" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">个人优势</view>
+                <view class="value">
+                    <textarea
+                        class="value-text"
+                        data-name="description"
+                        maxlength="-1" placeholder="请输入个人优势" value="{{form.description}}" 
+                        auto-focus placeholder-class="placeholder" bindinput="changeValue">
+                    </textarea>
+                </view>
+            </view>
+
+        </view>
+    </view>
+
+    <view class="checkbox">
+        <van-checkbox 
+            value="{{form.isFirst}}" 
+            checked-color="#5ED5C8"
+            shape="square" bind:change="onChangeCheckbox">设为优先选择</van-checkbox>
+    </view>
+
+    <view class="checkbox">
+        <van-checkbox 
+            value="{{form.isPublic}}" 
+            checked-color="#5ED5C8"
+            shape="square" bind:change="onChangePublicCheckbox">对外隐藏求职目标</van-checkbox>
+    </view>
+
+    <view class="tips">
+        温馨提示：填写完求职目标并保存后请返回添加附件简历，以便奖聘更好为您提供服务（简历未经授权不会提供给他人）。
+    </view>
+</view>
+
+<view class="operation-container">
+    <view class="btn btn-del" bindtap="del">{{action == 'add' ? '取消' : '删除'}}</view>
+    <view class="btn btn-save" bindtap="submit">保存</view>
+</view>
+
+<popup 
+    show="{{popup.target}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{['全职', '兼职']}}"
+    default-index="{{ 0 }}"
+    bind:confirm="confirmPopupTarget"
+    bind:cancel="closePopupTarget"
+    />
+</popup>
+
+<popup 
+    show="{{ popup.city }}" 
+    position="bottom"
+>
+    <view class="popup-checkbox">
+        <view class="popup-toolbar">
+            <view class="popup-cancel" bindtap="closePopupCity">取消</view>
+            <view class="popup-confirm" bindtap="confirmPopupCity">确认</view>
+        </view>
+        <view class="popup-body">
+            <van-checkbox-group class="checkbox-group" bind:change="onChangeCity" value="{{destCity}}">
+                <van-checkbox 
+                    class="checkbox" 
+                    shape="square" 
+                    name="{{item.name}}" 
+                    wx:for="{{cities}}"
+                    wx:key="id"
+                >
+                    {{item.name}}
+                </van-checkbox>
+            </van-checkbox-group>
+        </view>
+    </view>
+</popup>
+
+<popup 
+    show="{{ popup.industry }}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{ industryParent }}"
+    bind:confirm="confirmPopupIndustry"
+    bind:cancel="closePopupIndustry"
+    bind:change="onChangeIndustry"
+    />
+</popup>

@@ -1,0 +1,10 @@
+<navbar title="生成海报" showBackBtn="1"></navbar>
+<view class="wrapper">
+    <view style="height: 1624rpx;width: 750rpx;">
+        <image src="{{img}}"></image>
+    </view>
+</view>
+<view class="action">
+    <view class="btn-save" bindtap="saveImage">保存海报</view>
+</view>
+<painter palette="{{config}}" bind:imgOK="onImgOK" />

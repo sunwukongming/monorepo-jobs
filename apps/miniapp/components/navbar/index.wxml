@@ -1,0 +1,15 @@
+<view class="navbar" style="background-color: {{isTransparent ? 'transparent' : '#5ED5C8'}};">
+    <view style="height: {{statusBarHeight}}px;"><!-- 修复手机系统栏高度 --></view>
+    <view class="navbar-title" style="height: {{navBarHeight}}px;">
+        <view class="navbar-btn">
+            <view class="icon" bindtap="back" wx:if="{{showBackBtn}}">
+                <image src="/assets/icons/arrow-left.png"></image>
+            </view>
+            <view class="icon" bindtap="home" wx:if="{{showHomeBtn}}">
+                <image src="/assets/icons/home.png"></image>
+            </view>
+        </view>
+        <text class="text">{{title}}</text>
+    </view>
+</view>
+<view style="height: {{statusBarHeight + navBarHeight}}px;"></view>

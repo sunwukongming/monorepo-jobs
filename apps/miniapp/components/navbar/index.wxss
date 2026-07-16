@@ -1,0 +1,30 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 750rpx;
+    z-index: 200;
+}
+.navbar-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.navbar-title > .text {
+    color: white;
+    font-size: 34rpx;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.navbar-btn {
+    position: absolute;
+    left: 32rpx;
+    display: flex;
+}
+
+.navbar-btn > .icon {
+    width: 60rpx;
+    height: 60rpx;
+    margin-right: 12rpx;
+}

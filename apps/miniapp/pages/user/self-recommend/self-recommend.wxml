@@ -1,0 +1,59 @@
+<view class="container">
+    <navbar title="我的自荐" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="search-wrapper" style="top: {{navBarHeight + statusBarHeight}}px;">
+        <view class="search-container">
+            <view class="search-icon">
+                <image src="/assets/icons/search.png"></image>
+            </view>
+            <input class="search-input" placeholder="请输入关键词" 
+                bindconfirm="keywordSearch" 
+                bindinput="onSearchInput" 
+                confirm-type="search"
+                value="{{keyword}}"></input> 
+            <view class="close-icon" wx:if="{{showClose}}" bindtap="clearSearchInput">
+                <image src="/assets/icons/close-o.png"></image>
+            </view>
+        </view>
+    </view>
+    <view class="list-wrapper job">
+        <view class="list-item" wx:for="{{items}}" wx:key="id" data-id="{{item.passage.id}}" bindtap="toDetail">
+            <view class="list-header">
+                <view class="left">
+                    <view class="name">{{item.deliver.accountName}}</view>
+                    <view class="phone">{{item.phone}}</view>
+                </view>
+                <view class="right">
+                    <view>{{item.date}}</view>
+                    <view style="margin-left: 8rpx;">{{item.deliver.progress}}</view>
+                </view>
+            </view>
+            <view class="item-title">
+                <view class="left">
+                    <view class="text">{{item.passage && item.passage.title}}</view>
+                </view>
+                <view class="right">
+                    <view class="time">{{item.passage && item.passage.updateAt}}</view>
+                </view>
+            </view>
+
+            <view class="item-desc">{{item.passage && item.passage.liangdian}}</view>
+
+            <view class="item-footer">
+                <view class="left">
+                    <view class="location">
+                        <image src="/assets/icons/location.png"></image>
+                    </view>
+                    <view class="text">{{item.passage && item.passage.cityName}}</view>
+                    <view class="text">{{item.passage && item.passage.districtName}}</view>
+                </view>
+                <view class="right">
+                    <view class="text">年薪{{item.passage && item.passage.salaryMin}}-{{item.passage && item.passage.salaryMax}}万</view>
+                    <view class="symbol">·</view>
+                    <view class="text">推荐奖金：{{item.passage && item.passage.successReward}}</view>
+                </view>
+            </view>
+        </view>
+    </view>
+    <divider contentPosition="center" wx:if="{{!hasMore}}">~ 全部自荐加载完成 ~</divider>
+</view>

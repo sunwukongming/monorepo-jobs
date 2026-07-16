@@ -1,0 +1,155 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="article-header">
+        <view class="article-title" bindlongpress="copyTitle">{{article.title}}</view>
+        <view class="article-info">
+            <view class="publisher">发布者：{{article.pulisher}}</view>
+            <view class="datetime">{{article.datetime}}</view>
+        </view>
+    </view>
+
+    <view class="article-content">
+        <rich-text nodes="{{article.content}}" bindlongpress="copyContent"></rich-text>
+    </view>
+
+    <view class="padding" wx:if="{{article.passages.length > 0}}">
+        <divider contentPosition="center">精选职位</divider>
+    </view>
+    
+    <view class="relative-wrapper" wx:if="{{similarItems.length > 0}}">
+        <view class="list-wrapper">
+            <view class="list-item" wx:for="{{similarItems}}" wx:key="id" bindtap="toDetail" data-id="{{item.id}}">
+                <view class="list-header">
+                    <view></view>
+                    <view class="tag active" wx:if="{{item.isAnonymous == 0}}">实名职位</view>
+                    <view class="tag" wx:else>密招职位</view>
+                </view>
+                <view class="item-title">
+                    <view class="left">
+                        <view class="text">{{item.title}}</view>
+                        <view class="top" wx:if="{{item.isTop != 0}}">
+                            <image src="/assets/icons/fire.png"></image>
+                        </view>
+                    </view>
+                    <view class="right">{{item.datetime}}</view>
+                </view>
+
+                <view class="item-tags">
+                    <view class="item-tag" 
+                        wx:for="{{item.tags}}" 
+                        wx:for-item="tag"
+                        wx:key="tag"
+                    >{{tag}}</view>
+                </view>
+
+                <view class="item-desc">{{item.liangdian}}</view>
+
+                <view class="item-footer">
+                    <view class="left">
+                        <view class="location">
+                            <image src="/assets/icons/location.png"></image>
+                        </view>
+                        <view class="text">{{item.cityName}}</view>
+                        <view class="text">{{item.districtName}}</view>
+                    </view>
+                    <view class="right">
+                        <view class="text">年薪{{item.salaryMin}}-{{item.salaryMax}}万</view>
+                        <view class="symbol">·</view>
+                        <view class="text">推荐奖金：{{item.successReward}}</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+
+        <view class="line"></view>
+    </view>
+
+    <view class="article-footer">
+        <view class="left">
+            <!-- <text class="origin">阅读原文</text> -->
+            <text class="view">阅读 {{article.viewCount}}</text>
+        </view>
+        <view class="right">
+            <view class="good-job" bind:tap="likeOrUnlike">
+                <van-icon name="good-job" color="#ffc83d" wx:if="{{article.isLike}}"/>
+                <van-icon name="good-job-o" wx:else/>
+                <text>{{article.likeCount}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="line"></view>
+
+    <!-- <view class="padding end">
+        <divider contentPosition="center">END</divider>
+    </view> -->
+
+    <view class="banner">
+        <image 
+            class="image"
+            bindtap="previewImage"
+            show-menu-by-longpress
+            src="{{banner}}" 
+            mode="widthFix"/>
+    </view>
+</view>
+
+<fab content="{{menus}}" bind:clickMenu="onClickMenu"></fab>
+
+<view class="action {{fromTimeLine ? 'timeLine' : ''}}">
+    <view class="action-content">
+        <view class="group" bindtap="openShareModal">
+            <view class="icon">
+                <image src="/assets/icons/share.png"></image>
+            </view>
+            <text>分享</text>
+        </view>
+        <view class="group" bindtap="onCollect">
+            <view class="icon">
+                <image src="/assets/icons/star-light.png" wx:if="{{!item.isLike}}"></image>
+                <image src="/assets/icons/star-fill.png" wx:else></image>
+            </view>
+            <text>收藏</text>
+        </view>
+        <view class="right">
+            <button class="btn-save" open-type="contact" 
+                show-message-card="{{true}}"
+                send-message-title="{{article.title}}"
+            >{{menu.btn}}</button>
+        </view>
+    </view>
+</view>
+
+<view class="modal-container" wx:if="{{showShareModal}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-header">
+            <text class="modal-title">选择分享方式</text>
+        </view>
+        <view class="modal-body">
+            <!-- <button class="menu-btn" bindtap="toCanvas" data-type="1">
+                <view class="icon">
+                    <image src="/assets/icons/no-award.png"></image>
+                </view>
+                <text>不含奖金信息的卡片</text>
+            </button> -->
+            <!-- <button class="menu-btn" bindtap="toCanvas" data-type="2">
+                <view class="icon">
+                    <image src="/assets/icons/has-award.png"></image>
+                </view>
+                <text>生成分享卡片</text>
+            </button> -->
+            <button class="menu-btn" open-type="share">
+                <view class="icon">
+                    <image src="/assets/icons/sharetowx.png"></image>
+                </view>
+                <text>分享给好友或群聊</text>
+            </button>
+        </view>
+        <view class="modal-footer">
+            <view class="close" bindtap="closeShareModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>

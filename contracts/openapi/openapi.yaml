@@ -1,0 +1,30 @@
+openapi: 3.1.0
+info:
+  title: Jobs API
+  version: 0.0.1
+  description: 小程序与后台管理共用的主 API 契约骨架。
+servers:
+  - url: http://127.0.0.1:8080
+    description: local
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: 健康检查
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok

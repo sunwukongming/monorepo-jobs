@@ -1,0 +1,27 @@
+name: job-server
+mode: debug
+listen: 8080
+key: change-me
+
+dbs:
+  default:
+    host: 127.0.0.1
+    username: root
+    password: your-password
+    dbname: bolejiang
+    port: 3306
+    poolSize: 50
+    prefix:
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password:
+  index: 0
+  poolSize: 100
+
+oss:
+  endpoint: oss-cn-beijing.aliyuncs.com
+  accessKeyId: your-access-key-id
+  accessKeySecret: your-access-key-secret
+  bucket: your-bucket

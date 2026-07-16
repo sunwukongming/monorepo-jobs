@@ -1,0 +1,100 @@
+{
+    "pages": [
+        "pages/home/home",
+        "pages/user/user",
+        "pages/select/city/city",
+        "pages/select/industry/industry",
+        "pages/select/profession/profession",
+        "pages/user/update/update",
+        "pages/user/collection/collection",
+        "pages/detail/detail",
+        "pages/canvas/canvas",
+        "pages/web/web",
+        "pages/job/job",
+        "pages/job/detail/detail",
+        "pages/job/canvas/canvas",
+        "pages/discover/discover",
+        "pages/discover/detail/detail",
+        "pages/user/target/target",
+        "pages/user/info/info",
+        "pages/user/exp/work/index",
+        "pages/user/exp/edu/index",
+        "pages/user/exp/project/index",
+        "pages/user/resume/online/online",
+        "pages/user/resume/file/file",
+        "pages/user/description/description",
+        "pages/user/tag/tag",
+        "pages/user/recommend/recommend",
+        "pages/user/self-recommend/self-recommend",
+        "pages/company/detail/detail"
+    ],
+    "tabBar": {
+        "color": "#A0A1A4",
+        "selectedColor": "#248379",
+        "backgroundColor": "#fff",
+        "borderStyle": "black",
+        "list": [
+            {
+                "selectedIconPath": "assets/tabbar/home-active.png",
+                "iconPath": "assets/tabbar/home.png",
+                "pagePath": "pages/home/home",
+                "text": "职位&公司"
+            },
+            {
+                "selectedIconPath": "assets/tabbar/edu-active.png",
+                "iconPath": "assets/tabbar/edu.png",
+                "pagePath": "pages/job/job",
+                "text": "人才库"
+            },
+            {
+                "selectedIconPath": "assets/tabbar/discover-active.png",
+                "iconPath": "assets/tabbar/discover.png",
+                "pagePath": "pages/discover/discover",
+                "text": "发现"
+            },
+            {
+                "selectedIconPath": "assets/tabbar/user-active.png",
+                "iconPath": "assets/tabbar/user.png",
+                "pagePath": "pages/user/user",
+                "text": "我的"
+            }
+        ]
+    },
+    "window": {
+        "backgroundTextStyle": "light",
+        "navigationBarBackgroundColor": "#fff",
+        "navigationBarTitleText": "奖聘",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+    },
+    "usingComponents": {
+        "action-sheet": "/components/vant/action-sheet/index",
+        "van-checkbox": "/components/vant/checkbox/index",
+        "van-checkbox-group": "/components/vant/checkbox-group/index",
+        "dialog": "/components/vant/dialog/index",
+        "divider": "/components/vant/divider/index",
+        "navbar": "/components/navbar/index",
+        "van-picker": "/components/vant/picker/index",
+        "popup": "/components/vant/popup/index",
+        "van-switch": "/components/vant/switch/index",
+        "van-tab": "/components/vant/tab/index",
+        "van-tabs": "/components/vant/tabs/index",
+        "tree-select": "/components/vant/tree-select/index",
+        "van-icon": "/components/vant/icon/index",
+        "van-image": "/components/vant/image/index",
+        "fab": "/components/fab/fab",
+        "van-sticky": "/components/vant/sticky/index",
+        "van-empty": "/components/vant/empty/index",
+        "van-calendar": "/components/vant/calendar/index",
+        "van-datetime-picker": "/components/vant/datetime-picker/index",
+        "van-field": "/components/vant/field/index",
+        "van-notice-bar": "/components/vant/notice-bar/index",
+        "van-action-sheet": "/components/vant/action-sheet/index",
+        "van-button": "/components/vant/button/index",
+        "van-circle": "/components/vant/circle/index",
+        "van-steps": "/components/vant/steps/index",
+        "van-share-sheet": "/components/vant/share-sheet/index"
+    },
+    "sitemapLocation": "sitemap.json",
+    "lazyCodeLoading": "requiredComponents"
+}

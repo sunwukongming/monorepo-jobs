@@ -1,0 +1,323 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="0"></navbar>
+    <view class="swiper-container">
+        <swiper class="swiper-wrapper" bindchange="swiperChange" 
+            indicator-dots="{{swiper.indicatorDots}}" 
+            autoplay="{{swiper.autoplay}}" 
+            interval="{{swiper.interval}}" 
+            duration="{{swiper.duration}}"
+            circular="{{swiper.circular}}"
+            previous-margin="50rpx"
+            next-margin="50rpx"
+        >
+            <block wx:for="{{swiper.items}}" wx:key="id">
+                <swiper-item class="swiper-item">
+                    <view class="swiper-image-container" bindtap="toPage" data-id="{{item.id}}">
+                        <image class="swiper-image" src="{{item.url}}"></image>
+                    </view>
+                </swiper-item>
+            </block>
+        </swiper>
+        <view class="swiper-dots">
+            <block wx:for="{{swiper.items}}" wx:key="index">
+              <view class="dot-item {{index == swiper.current ? ' active' : ''}}"></view>
+            </block>
+        </view>
+    </view>
+
+    <view class="userinfo" bindtap="toJobTarget">
+        <view class="left">出奖金，招大牛！</view>
+        <view class="right">
+            <view class="label">{{jobInfo}}</view>
+            <view class="icon">
+                <van-icon name="arrow" color="#1989fa" size="28rpx"></van-icon>
+            </view>
+        </view>
+    </view>
+
+    <view class="content-container" style="border-top: 1px solid #f5f5f5;">
+        <van-tabs active="{{ activeTab }}" bind:change="onChangeTab">
+            <van-tab title="职位">
+                <van-sticky offset-top="{{fixedHeight}}">
+                    <view class="search-wrapper">
+                        <view class="search-container">
+                            <view class="search-icon">
+                                <image src="/assets/icons/search.png"></image>
+                            </view>
+                            <input class="search-input" placeholder="请输入职位关键词" 
+                                bindconfirm="jobKeywordSearch" 
+                                bindinput="jobSearchInput"
+                                bindfocus="jobFocusSearch"
+                                bindblur="jobBlurSearch"
+                                confirm-type="search"
+                                value="{{jobKeyword}}"></input>
+                            <view class="close-icon" wx:if="{{showJobClose}}" bindtap="clearJobSearchInput">
+                                <image src="/assets/icons/close-o.png"></image>
+                            </view>
+                        </view>
+                        <view class="history-container" wx:if="{{showJobHistory}}">
+                            <view class="history-title">搜索历史</view>
+                            <view class="history">
+                                <view 
+                                    class="history-word" 
+                                    wx:for="{{jobHistoryWords}}"
+                                    wx:key="index"
+                                    bindtap="quickSearchJob" 
+                                    data-keyword="{{item}}"
+                                >{{item}}</view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="list-filter">
+                        <view class="filter-item" bindtap="toSelectCity">
+                            <view class="filter-text">{{ city.text }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                        <view class="filter-item" bindtap="toSelectIndustry">
+                            <view class="filter-text">{{ industry.name }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                        <view class="filter-item" bindtap="toSelectProfession">
+                            <view class="filter-text">{{ profession.name }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                        <view class="filter-item" bindtap="showPopupPublic">
+                            <view class="filter-text">{{ public }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                    </view>
+                </van-sticky>
+
+                <view class="list-container">
+                    <view class="list-wrapper">
+                        <view class="list-item" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="toDetail">
+                            <view class="list-header">
+                                <view></view>
+                                <!-- <view class="tag active" wx:if="{{item.isAnonymous == 0}}">{{'自荐礼包'}}</view>
+                                <view class="tag" wx:else>{{'自荐礼包'}}</view> -->
+                                <view class="tag active" wx:if="{{item.isAnonymous == 0}}">实名职位</view>
+                                <view class="tag" wx:else>密招职位</view>
+                            </view>
+                            <view class="item-title">
+                                <view class="left">
+                                    <view class="text">{{item.title}}</view>
+                                    <view class="top" wx:if="{{item.isTop != 0}}">
+                                        <image src="/assets/icons/fire.png"></image>
+                                    </view>
+                                </view>
+                                <view class="right">
+                                    <view class="time">{{item.updateAt}}</view>
+                                </view>
+                            </view>
+                            <view class="item-tags">
+                                <view class="item-tag" 
+                                    wx:for="{{item.tags}}" 
+                                    wx:for-item="tag"
+                                    wx:key="tag"
+                                >{{tag}}</view>
+                            </view>
+                            <view class="item-desc">{{item.liangdian}}</view>
+
+                            <view class="item-footer">
+                                <view class="left">
+                                    <view class="location">
+                                        <image src="/assets/icons/location.png"></image>
+                                    </view>
+                                    <view class="text">{{item.cityName}}</view>
+                                    <view class="text">{{item.districtName}}</view>
+                                </view>
+                                <view class="right">
+                                    <view class="text">年薪{{item.salaryMin}}-{{item.salaryMax}}万</view>
+                                    <view class="symbol">·</view>
+                                    <view class="text">推荐奖金：{{item.successReward}}</view>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                <divider contentPosition="center" wx:if="{{!hasMore}}">~ 我是有底线的哦 ~</divider>
+            </van-tab>
+            <van-tab title="公司">
+                <van-sticky offset-top="{{fixedHeight}}">
+                    <view class="search-wrapper">
+                        <view class="search-container">
+                            <view class="search-icon">
+                                <image src="/assets/icons/search.png"></image>
+                            </view>
+                            <input class="search-input" placeholder="请输入公司或产品名称关键词" 
+                                bindconfirm="companyKeywordSearch" 
+                                bindinput="companySearchInput"
+                                bindfocus="companyFocusSearch"
+                                bindblur="companyBlurSearch"
+                                confirm-type="search"
+                                value="{{companyKeyword}}"></input>
+                            <view class="close-icon" wx:if="{{showCompanyClose}}" bindtap="clearCompanySearchInput">
+                                <image src="/assets/icons/close-o.png"></image>
+                            </view>
+                        </view>
+                        <view class="history-container" wx:if="{{showCompanyHistory}}">
+                            <view class="history-title">搜索历史</view>
+                            <view class="history">
+                                <view 
+                                    class="history-word" 
+                                    wx:for="{{companyHistoryWords}}"
+                                    wx:key="index"
+                                    bindtap="quickSearchCompany" 
+                                    data-keyword="{{item}}"
+                                >{{item}}</view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="list-filter">
+                        <view class="filter-item" bindtap="toSelectCity" data-type="company">
+                            <view class="filter-text">{{ cityCompany.text }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                        <view class="filter-item" bindtap="toSelectIndustry" data-type="company">
+                            <view class="filter-text">{{ industryCompany.name }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                        <view class="filter-item" bindtap="showPopupScale">
+                            <view class="filter-text">{{ scale.text }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                        <view class="filter-item" bindtap="showPopupStage">
+                            <view class="filter-text">{{ stage.text }}</view>
+                            <view class="filter-icon">
+                                <image src="/assets/icons/triangle-down.png"></image>
+                            </view>
+                        </view>
+                    </view>
+                </van-sticky>
+                    
+
+                <view class="list-container">
+                    <view class="list-wrapper">
+                        <view class="list-item" wx:for="{{companyItems}}" wx:key="id" data-id="{{item.id}}" bindtap="toCompanyDetail">
+                            <view class="item-container">
+                                <view class="icon">
+                                    <van-image width="132rpx" height="132rpx" 
+                                        radius="24rpx"
+                                        src="{{item.icon}}"></van-image>
+                                </view>
+                                <view class="item-content">
+                                    <view class="item-title">
+                                        <view class="left">
+                                            <view class="text">{{item.simpleName}}</view>
+                                            <view class="top" wx:if="{{item.isTop == 1}}">
+                                                <image src="/assets/icons/fire.png"></image>
+                                            </view>
+                                        </view>
+                                    </view>
+                                    <rich-text class="item-desc" nodes="{{item.companysynopsis}}"></rich-text>
+                                </view>
+                            </view>
+                            <view class="item-tags">
+                                <view class="item-tag" 
+                                    wx:for="{{item.tags}}" wx:for-item="tag"
+                                    wx:key="tag"
+                                >{{tag}}</view>
+                            </view>
+                            <view class="item-footer">
+                                <view class="left">
+                                    <view class="location">
+                                        <image src="/assets/icons/location.png"></image>
+                                    </view>
+                                    <view class="text">{{item.cityName}}</view>
+                                    <view class="text">{{item.districtName}}</view>
+                                </view>
+                                <view class="right">
+                                    <view class="text">共有{{item.passageAmount}}个公开有奖职位</view>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                <divider contentPosition="center" wx:if="{{!companyHasMore}}">~ 我是有底线的哦 ~</divider>
+            </van-tab>
+        </van-tabs>
+    </view>
+    
+</view>
+
+<popup 
+    show="{{popup.public}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{publicItems}}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupPublic"
+    bind:cancel="closePopupPublic"
+    />
+</popup>
+
+<popup 
+    show="{{popup.stage}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{stageItems}}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupStage"
+    bind:cancel="closePopupStage"
+    />
+</popup>
+
+<view class="callout" wx:if="{{showCallout}}" bindtap="toRule">
+    <view class="title">帮找工作有奖</view>
+</view>
+
+<van-action-sheet
+  show="{{ showLogin }}"
+>
+    <view class="login-container">
+        <view class="login-tips">
+            <view class="tips-title">
+                <text>欢迎加入奖聘</text>
+                <text class="open-privacy" bindtap="openPrivacy">查看协议</text>
+            </view>
+            <view class="tips-desc">加入后，自荐简历有礼包，推荐牛人拿奖金！</view>
+        </view>
+        <view class="login-action">
+            <button 
+                class="login-btn"
+                open-type="getPhoneNumber|agreePrivacyAuthorization" 
+                bind:getphonenumber="getPhoneNumber"
+                bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+            >
+                同意隐私协议并授权手机号
+            </button>
+            <view class="login-cancel" bindtap="toHome">暂时跳过</view>
+        </view>
+    </view>
+</van-action-sheet>
+
+<popup 
+    show="{{popup.scale}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{scaleItems}}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupScale"
+    bind:cancel="closePopupScale"
+    />
+</popup>

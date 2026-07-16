@@ -1,0 +1,151 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="0"></navbar>
+    <view class="swiper-container">
+        <swiper class="swiper-wrapper" bindchange="swiperChange" 
+            indicator-dots="{{swiper.indicatorDots}}" 
+            autoplay="{{swiper.autoplay}}" 
+            interval="{{swiper.interval}}" 
+            duration="{{swiper.duration}}"
+            circular="{{swiper.circular}}"
+            previous-margin="50rpx"
+            next-margin="50rpx"
+        >
+            <block wx:for="{{swiper.items}}" wx:key="id">
+                <swiper-item class="swiper-item">
+                    <view class="swiper-image-container" bindtap="swiperToPage" data-id="{{item.id}}">
+                        <image class="swiper-image" src="{{item.url}}"></image>
+                    </view>
+                </swiper-item>
+            </block>
+        </swiper>
+        <view class="swiper-dots">
+            <block wx:for="{{swiper.items}}" wx:key="index">
+              <view class="dot-item {{index == swiper.current ? ' active' : ''}}"></view>
+            </block>
+        </view>
+    </view>
+
+    <view class="content-container">
+        <view class="panel">
+            <view class="panel-body">
+                <view class="menu" bindtap="toRule">
+                    <view class="label">定目标，求职快！</view>
+                    <view class="arrow">
+                        <text class="label">{{userJob}}</text>
+                        <van-icon name="arrow" color="#1989fa" size="28rpx"></van-icon>
+                    </view>
+                </view>
+            </view>    
+        </view>
+
+        <view class="search-wrapper" style="top: {{fixedHeight}}px;">
+            <view class="search-container">
+                <view class="search-icon">
+                    <image src="/assets/icons/search.png"></image>
+                </view>
+                <input class="search-input" placeholder="请输入目标职位或目标公司关键词" 
+                    bindconfirm="keywordSearch" 
+                    bindinput="searchInput" 
+                    confirm-type="search"
+                    value="{{keyword}}"></input>
+                <view class="close-icon" wx:if="{{showClose}}" bindtap="clearSearchInput">
+                    <image src="/assets/icons/close-o.png"></image>
+                </view>
+            </view>
+        </view>
+
+        <view class="list-container">
+            <view class="list-filter" style="top: calc({{fixedHeight}}px + 110rpx);">
+                <view class="filter-item" bindtap="toSelectCity">
+                    <view class="filter-text">{{ city.text }}</view>
+                    <view class="filter-icon">
+                        <image src="/assets/icons/triangle-down.png"></image>
+                    </view>
+                </view>
+                <view class="filter-item" bindtap="toSelectIndustry">
+                    <view class="filter-text">{{ industry.name }}</view>
+                    <view class="filter-icon">
+                        <image src="/assets/icons/triangle-down.png"></image>
+                    </view>
+                </view>
+                <view class="filter-item" bindtap="toSelectProfession">
+                    <view class="filter-text">{{ profession.name }}</view>
+                    <view class="filter-icon">
+                        <image src="/assets/icons/triangle-down.png"></image>
+                    </view>
+                </view>
+                <view class="filter-item" bind:tap="showPopupHelpPlan">
+                    <view class="filter-text">{{ helpPlan }}</view>
+                    <view class="filter-icon">
+                        <image src="/assets/icons/triangle-down.png"></image>
+                    </view>
+                </view>
+            </view>
+
+            <view class="list-wrapper">
+                <view class="list-item" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="toDetail">
+                    <view class="job">
+                        <view class="left">{{item.destPosition}}</view>
+                        <view class="right">
+                            <view class="except" wx:if="{{item.helpRewardToC > 0}}">协助奖金: {{item.helpRewardToC}} 元</view>
+                        </view>
+                    </view>
+                    <view class="job-info">
+                        <view class="info-group">
+                            <view class="label">目标公司：</view>
+                            <view class="value">{{item.destCompany}}</view>
+                        </view>
+                        <view class="info-group">
+                            <view class="label">目标城市：</view>
+                            <view class="value">{{item.destCity}}</view>
+                        </view>
+                    </view>
+                    <view class="job-user">{{item.description}}</view>
+                    <view class="job-footer">
+                        <view class="date">{{item.updateAt}}</view>
+                        <view class="except">期望：{{item.destSalary}}</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+    <divider contentPosition="center" wx:if="{{!hasMore}}">~ 我是有底线的哦 ~</divider>
+</view>
+
+<popup 
+    show="{{popup.helpPlan}}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{helpPlanItems}}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupHelpPlan"
+    bind:cancel="closePopupHelpPlan"
+    />
+</popup>
+
+<van-action-sheet
+  show="{{ showLogin }}"
+>
+    <view class="login-container">
+        <view class="login-tips">
+            <view class="tips-title">
+                <text>欢迎加入奖聘</text>
+                <text class="open-privacy" bindtap="openPrivacy">查看协议</text>
+            </view>
+            <view class="tips-desc">加入后，自荐简历有礼包，推荐牛人拿奖金！</view>
+        </view>
+        <view class="login-action">
+            <button 
+                class="login-btn"
+                open-type="getPhoneNumber|agreePrivacyAuthorization" 
+                bind:getphonenumber="getPhoneNumber"
+                bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+            >
+                同意隐私协议并授权手机号
+            </button>
+            <view class="login-cancel" bindtap="loginCancel">暂时跳过</view>
+        </view>
+    </view>
+</van-action-sheet>

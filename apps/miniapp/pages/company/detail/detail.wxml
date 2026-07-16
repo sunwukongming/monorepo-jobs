@@ -1,0 +1,182 @@
+<view class="container">
+    <navbar title="公司详情" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="wrapper">
+        <view class="company">
+            <view class="icon">
+                <van-image width="132rpx" height="132rpx" 
+                    radius="24rpx"
+                    src="{{ item.icon }}"></van-image>
+            </view>
+            <view class="company-header">
+                <view class="company-title">{{ item.simpleName }}</view>
+                <view class="collect">
+                    <van-icon name="star-o" size="40rpx" color="#999"></van-icon>
+                </view>
+            </view>
+            <view class="company-tags" wx:if="{{item.tags.length > 0}}">
+                <view class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="tag">{{tag}}</view>
+            </view>
+            <view class="company-description" style="position: relative;">
+                <rich-text nodes="{{ item.desc }}"></rich-text>
+                <text style="position:absolute;right: 0;bottom: 24rpx;color: #2D62FF;margin-left: 8rpx;" 
+                    wx:if="{{item.companysynopsis.length > 70}}" bind:tap="toggleDesc">{{showRemark}}</text>
+            </view>
+        </view>
+    </view>
+
+    <view class="tab-container">
+        <view class="tab-header">
+            <view class="tab {{activeTab == 0 ? 'active' : ''}}" bind:tap="onChangeTab" data-index="0">
+                <text>公司详情</text>
+                <image class="tab-icon" 
+                    src="../../../assets/icons/triangle-active.png" mode="" 
+                    wx:if="{{activeTab == 0}}"/>
+                <image class="tab-icon" 
+                    src="../../../assets/icons/triangle-down.png" mode="" 
+                    wx:else/>
+            </view>
+            <view class="tab {{activeTab == 1 ? 'active' : ''}}" bind:tap="onChangeTab" data-index="1">
+                <text>招聘岗位</text>
+                <image class="tab-icon" 
+                    src="../../../assets/icons/triangle-active.png" mode="" 
+                    wx:if="{{activeTab == 1}}"/>
+                <image class="tab-icon" 
+                    src="../../../assets/icons/triangle-down.png" mode="" 
+                    wx:else/>
+            </view>
+            <view class="tab {{activeTab == 2 ? 'active' : ''}}" bind:tap="onChangeTab" data-index="2">
+                <text>相关资讯</text>
+                <image class="tab-icon" 
+                    src="../../../assets/icons/triangle-active.png" mode="" 
+                    wx:if="{{activeTab == 2}}"/>
+                <image class="tab-icon" 
+                    src="../../../assets/icons/triangle-down.png" mode="" 
+                    wx:else/>
+            </view>
+        </view>
+        
+        <view class="tab-content" wx:if="{{activeTab == 0}}">
+            <view class="team-title">创始团队</view>
+            <view class="team-member" 
+                wx:for="{{teams}}" wx:for-item="member" 
+                wx:key="id" bind:tap="openMemberModal" data-index="{{index}}">
+                <view>
+                    <van-image width="90rpx" height="90rpx" src="{{member.avatarUrl}}"></van-image>
+                </view>
+                <view>
+                    <view class="name">{{member.name}}</view>
+                    <view class="description">
+                        <view class="desc">{{member.description}}</view>
+                        <van-icon name="arrow" color="#7B7B7B" />
+                    </view>
+                </view>
+            </view>
+        </view>
+        
+        <view class="tab-content" wx:if="{{activeTab == 1}}">
+            <van-empty description="暂无招聘岗位" wx:if="{{jobs.length == 0}}"/>
+            <view class="list-wrapper" wx:else>
+                <view class="list-item" 
+                    wx:for="{{jobs}}" wx:key="id" wx:for-item="job" 
+                    data-id="{{job.id}}" bindtap="toJobDetail">
+                    <view class="item-title">
+                        <view class="left">
+                            <view class="text">{{job.title}}</view>
+                            <view class="top" wx:if="{{job.isTop != 0}}">
+                                <image src="/assets/icons/fire.png"></image>
+                            </view>
+                        </view>
+                        <view class="right">
+                            <view class="time">{{job.updateAt}}</view>
+                        </view>
+                    </view>
+
+                    <view class="item-tags">
+                        <view class="item-tag" 
+                            wx:for="{{job.tags}}" wx:for-item="tag"
+                            wx:key="tag"
+                        >{{tag}}</view>
+                    </view>
+
+                    <view class="item-desc">{{job.liangdian}}</view>
+
+                    <view class="item-footer">
+                        <view class="left">
+                            <view class="location">
+                                <image src="/assets/icons/location.png"></image>
+                            </view>
+                            <view class="text">{{job.cityName}}</view>
+                            <view class="text">{{job.districtName}}</view>
+                        </view>
+                        <view class="right">
+                            <view class="text">年薪{{job.salaryMin}}-{{job.salaryMax}}万</view>
+                            <view class="symbol">·</view>
+                            <view class="text">推荐奖金：{{job.successReward}}</view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </view>
+
+        <view class="tab-content article-container" wx:if="{{activeTab == 2}}">
+            <view class="article"
+                data-id="{{article.id}}"
+                data-menu="{{article.menuId}}"
+                wx:for="{{articles}}"
+                wx:for-item="article"
+                wx:key="id"
+                bind:tap="toArticleDetail"
+            >
+                <view class="article-title">
+                    <view class="text">{{article.title}}</view>
+                    <view class="tag" wx:if="{{article.isTop == 1}}">置顶</view>
+                </view>
+                <view class="article-content">{{article.digest}}</view>
+                <view class="article-footer">
+                    <view class="publisher">发布者：{{article.pulisher}}</view>
+                    <view class="datetime">{{article.updateAt}}</view>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="timeline-container">
+        <view class="title">大事件</view>
+        <view class="timeline" wx:for="{{events}}" wx:for-item="event" wx:key="id">
+            <view class="event-title {{index == activeEvent ? 'active' : ''}}">
+                <view class="node">
+                    <view class="node-bg"></view>
+                </view>
+                <text class="title-text">{{event.year}}年</text>
+            </view>
+            <view class="info">
+                <view class="level">{{event.title}}</view>
+                <view class="desc">{{event.description}}</view>
+            </view>
+        </view>
+    </view>
+</view>
+
+<view class="modal-container" wx:if="{{showMemberModal}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-close" bind:tap="closeMemberModal">
+            <van-icon name="cross" size="32rpx" color="#fff"></van-icon>
+        </view>
+        <view class="modal-header">
+            <!-- <image class="bg" src="/assets/other/modal-header.png" mode=""/> -->
+        </view>
+        <view class="modal-body">
+            <view class="avatar">
+                <van-image src="{{member.avatarUrl}}" width="140rpx" height="140rpx" round></van-image>
+            </view>
+            <view class="modal-desc">{{member.description}}</view>
+        </view>
+        <view class="modal-footer" wx:if="{{showClose}}">
+            <view class="close" bindtap="closeModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>

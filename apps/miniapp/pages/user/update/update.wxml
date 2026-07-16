@@ -1,0 +1,410 @@
+<view class="container">
+    <navbar title="个人资料" showBackBtn="1" isTransparent="0"></navbar>
+
+    <view class="banner">
+        <image src="/assets/images/userinfo.png"></image>
+    </view>
+
+    <view class="wrapper">
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">头像</view>
+            </view>
+            <view class="right avatar">
+                <image src="{{wxUser.avatarUrl}}"></image>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">姓名</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入姓名" value="{{name}}" data-name="name" bindinput="changeValue"/>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">手机</view>
+            </view>
+            <view class="right">
+                <input class="input" type="number" placeholder="请输入手机号码" value="{{mobile}}" data-name="mobile" bindinput="changeValue"/>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group" wx:if="{{showWx}}">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">微信</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请填写您的微信号" value="{{wechat}}" data-name="wechat" bindinput="changeValue"/>
+            </view>
+        </view>
+        <view class="line-container" wx:if="{{showWx}}">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">邮箱</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请填写您的邮箱" value="{{email}}" data-name="email" bindinput="changeValue"/>
+            </view>
+        </view>
+    </view>
+
+    <view class="wrapper">
+        <view class="wrapper-title">当前信息</view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">当前状态</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请选择当前状态" value="{{currentState}}" data-name="currentState" bindtap="showPopupStatus" disabled="true" />
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">当前公司</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入公司" value="{{company}}" data-name="company" bindinput="changeValue"/>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">当前职位</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入职位" value="{{position}}" data-name="position" bindinput="changeValue"/>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">当前行业</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请选择行业" value="{{industry}}" data-name="industry" disabled="true" bindtap="showPopupIndustry" />
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">当前城市</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入当前城市" value="{{nowCity}}" data-name="nowCity" disabled="true" bindtap="showPopupNowCity" />
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="wrapper">
+        <view class="wrapper-title">求职意向</view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">对外展示</view>
+            </view>
+            <view class="right">
+                <van-switch checked="{{ isPublic }}" bind:change="onChangePublic" />
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">目标城市</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入目标城市" value="{{targetCity}}" data-name="targetCity" disabled="true" bindtap="showPopupTargetCity" />
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">目标公司</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入目标公司" value="{{targetCompany}}" data-name="targetCompany" bindinput="changeValue"/>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">目标行业</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请选择行业" value="{{targetIndustry}}" data-name="targetIndustry" disabled="true" bindtap="showPopupTargetIndustry" />
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">目标职位类别</view>
+            </view>
+            <view class="right" bindtap="toPosition">
+                <input class="input" type="text" placeholder="请选择目标职位类别" value="{{targetPosition}}" data-name="targetPosition" bindinput="changeValue" disabled="true"/>
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">目标职位名称</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入目标职位名称" value="{{destPositionTag}}" data-name="destPositionTag" bindinput="changeValue"/> 
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol"></view>
+                <view class="label">目标待遇</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请输入待遇要求" value="{{destSalary}}" data-name="destSalary" bindinput="changeValue"/> 
+            </view>
+        </view>
+    </view>
+
+    <view class="wrapper">
+        <view class="wrapper-title">教育背景</view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">最高学历</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请填写您的学历" value="{{degree}}" data-name="degree" disabled="true" bindtap="showPopupDegree" />
+                <view class="icon">
+                    <image src="/assets/icons/arrow-right.png"></image>
+                </view>
+            </view>
+        </view>
+        <view class="line-container">
+            <view class="line"></view>
+        </view>
+        <view class="form-group">
+            <view class="left">
+                <view class="symbol">*</view>
+                <view class="label">最高学府</view>
+            </view>
+            <view class="right">
+                <input class="input" type="text" placeholder="请填写您的学校" value="{{university}}" data-name="university" bindinput="changeValue"/>
+            </view>
+        </view>
+    </view>
+
+    <view class="wrapper introduct">
+        <view class="wrapper-title">经历及能力概述</view>
+        <textarea
+            class="textarea"
+            maxlength="-1" auto-height placeholder="{{textareaHolder}}" value="{{description}}" 
+            data-name="description" bindinput="changeValue"/>
+        <!-- <view class="statistics">0 / 300</view> -->
+    </view>
+
+    <view class="wrapper tag">
+        <view class="label">标签</view>
+        <view class="tag-container">
+            <view class="tag-item" wx:for="{{tagItems}}" wx:key="item" bindtap="delTag" data-index="{{index}}">
+                <text>{{item}}</text>
+                <view class="close">
+                    <image src="/assets/icons/close-red.png"></image>
+                </view>
+            </view>
+            <view class="tag-item" bindtap="onShowDialog">
+                <view class="plus">
+                    <image src="/assets/icons/plus.png"></image>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="readme">
+        <label class="checkbox">
+            <checkbox-group  bindchange="checkboxChange">
+                <checkbox value="1" checked="{{true}}" />
+            </checkbox-group>
+            <view class="text">
+                <view>请同意</view>
+                <view class="important">《奖聘用户协议》</view>
+                <view>和</view>
+                <view class="important">《隐私协议》</view>
+            </view>
+        </label>
+    </view>
+
+    <view class="action">
+        <view class="btn-save" bindtap="submit">保存</view>
+    </view>
+</view>
+<dialog use-slot title="添加标签" show="{{ showDialog }}" show-confirm-button bind:close="onCloseDialog">
+    <view style="padding: 32rpx;">
+        <input type="text" placeholder="请输入标签" focus="{{showDialog}}" bindinput="tagInput"/>
+    </view>
+</dialog>
+
+<popup 
+    show="{{ popup.status }}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{ columns.status }}"
+    default-index="{{ 1 }}"
+    bind:confirm="confirmPopupStatus"
+    bind:cancel="closePopupStatus"
+    />
+</popup>
+
+<popup 
+    show="{{ popup.degree }}" 
+    position="bottom" 
+>
+    <van-picker
+        show-toolbar
+        columns="{{ columns.degree }}"
+        default-index="{{ 1 }}"
+        bind:confirm="confirmPopupDegree"
+        bind:cancel="closePopupDegree"
+    />
+</popup>
+
+<popup 
+    show="{{ popup.nowCity }}" 
+    position="bottom" 
+>
+    <view class="popup-checkbox">
+        <view class="popup-toolbar">
+            <view class="popup-cancel" bindtap="closePopupNowCity">取消</view>
+            <view class="popup-confirm" bindtap="confirmPopupNowCity">确认</view>
+        </view>
+        <view class="popup-body">
+            <van-checkbox-group bind:change="onChangeNowCity" value="{{nowCities}}">
+                <van-checkbox 
+                    class="checkbox" 
+                    shape="square" 
+                    name="{{item.name}}" 
+                    wx:for="{{columns.nowCities}}"
+                    wx:key="id"
+                >
+                    {{item.name}}
+                </van-checkbox>
+            </van-checkbox-group>
+        </view>
+    </view>
+</popup>
+
+<popup 
+    show="{{ popup.targetCity }}" 
+    position="bottom" 
+>
+<view class="popup-checkbox">
+        <view class="popup-toolbar">
+            <view class="popup-cancel" bindtap="closePopupTargetCity">取消</view>
+            <view class="popup-confirm" bindtap="confirmPopupTargetCity">确认</view>
+        </view>
+        <view class="popup-body">
+            <van-checkbox-group bind:change="onChangeTargetCity" value="{{targetCities}}">
+                <van-checkbox 
+                    class="checkbox" 
+                    shape="square" 
+                    name="{{item.name}}" 
+                    wx:for="{{columns.targetCities}}"
+                    wx:key="id"
+                >
+                    {{item.name}}
+                </van-checkbox>
+            </van-checkbox-group>
+        </view>
+    </view>
+</popup>
+
+<popup 
+    show="{{ popup.industry }}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{ industryParent }}"
+    bind:confirm="confirmPopupIndustry"
+    bind:cancel="closePopupIndustry"
+    bind:change="onChangeIndustry"
+    />
+</popup>
+
+<popup 
+    show="{{ popup.targetIndustry }}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{ targetIndustryParent }}"
+    bind:confirm="confirmPopupTargetIndustry"
+    bind:cancel="closePopupTargetIndustry"
+    bind:change="onChangeTargetIndustry"
+    />
+</popup>

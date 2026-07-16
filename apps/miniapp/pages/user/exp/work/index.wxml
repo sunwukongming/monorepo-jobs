@@ -1,0 +1,112 @@
+<view class="container">
+    <navbar title="奖聘" showBackBtn="1"></navbar>
+
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">{{action == 'add' ? '添加' : '编辑'}}工作经历</view>
+        </view>
+        <view class="panel-body">
+            <view class="group">
+                <view class="label">公司名称</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入公司名称" value="{{form.company}}" data-name="company" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group" bindtap="showPopupIndustry">
+                <view class="label">所在行业</view>
+                <view class="value">
+                    <view class="value-text">{{form.industry}}</view>
+                    <view class="icon">
+                        <van-icon name="/assets/icons/arrow-right.png" size="36rpx"></van-icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">在职时间</view>
+                <view class="value">
+                    <view class="value-text time start" bindtap="showPopupStartTime">{{form.startTime}}</view>
+                    <view class=""> - </view>
+                    <view class="value-text time end" bindtap="showPopupEndTime">{{form.endTime}}</view>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">职位名称</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入职位名称" value="{{form.position}}" data-name="position" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">工作内容</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入工作内容" value="{{form.content}}" data-name="content" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">拥有技能（选填）</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入工作技能" value="{{form.skills}}" data-name="skills" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+            <view class="group">
+                <view class="label">工作业绩（选填）</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入工作业绩" value="{{form.performance}}" data-name="performance" placeholder-class="placeholder" bindinput="changeValue"/>
+                </view>
+            </view>
+
+        </view>
+    </view>
+</view>
+
+<view class="operation-container">
+    <view class="btn btn-del" bindtap="del">{{action == 'add' ? '取消' : '删除'}}</view>
+    <view class="btn btn-save" bindtap="submit">保存</view>
+</view>
+
+<popup 
+    show="{{ popup.industry }}" 
+    position="bottom" 
+>
+    <van-picker
+    show-toolbar
+    columns="{{ industryParent }}"
+    bind:confirm="confirmPopupIndustry"
+    bind:cancel="closePopupIndustry"
+    bind:change="onChangeIndustry"
+    />
+</popup>
+
+<popup 
+    show="{{ popup.startTime }}" 
+    position="bottom" 
+>
+    <van-datetime-picker
+        type="year-month"
+        value="{{ maxDate }}"
+        min-date="{{ minDate }}"
+        bind:cancel="closePopupStartTime"
+        bind:confirm="confirmPopupStartTime"
+    />
+</popup>
+
+<popup 
+    show="{{ popup.endTime }}" 
+    position="bottom" 
+>
+    <van-datetime-picker
+        type="year-month"
+        value="{{ maxDate }}"
+        min-date="{{ minDate }}"
+        bind:cancel="closePopupEndTime"
+        bind:confirm="confirmPopupEndTime"
+    />
+</popup>

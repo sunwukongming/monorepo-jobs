@@ -1,0 +1,16 @@
+<view class="modal-container" wx:if="{{show}}">
+    <view class="backdrop"></view>
+    <view class="modal">
+        <view class="modal-header">
+            <text class="modal-title">{{title}}</text>
+        </view>
+        <view class="modal-body">
+            <slot></slot>
+        </view>
+        <view class="modal-footer" wx:if="{{showClose}}">
+            <view class="close" bindtap="closeModal">
+                <image src="/assets/icons/close.png"></image>
+            </view>
+        </view>
+    </view>
+</view>    

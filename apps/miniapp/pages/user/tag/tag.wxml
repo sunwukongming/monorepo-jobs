@@ -1,0 +1,35 @@
+<view class="container">
+    <navbar title="个人优势" showBackBtn="1"></navbar>
+
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">编辑个人标签</view>
+        </view>
+        <view class="panel-body">
+            <view class="group">
+                <view class="label">个人标签</view>
+                <view class="value">
+                    <input class="value-text" type="text" placeholder="请输入标签" value="{{tag}}" placeholder-class="placeholder" bindinput="changeValue"/>
+                    <view class="plus" bindtap="addTag">添加</view>
+                </view>
+            </view>
+            <view class="tag-container">
+                <view class="tag-item" wx:for="{{items}}" wx:key="item" bindtap="delTag" data-index="{{index}}">
+                        <text>{{item}}</text>
+                        <view class="close">
+                            <image class="image" src="/assets/icons/close-red.png"></image>
+                        </view>
+                    </view>
+                </view>
+        </view>
+    </view>
+</view>
+
+<view class="operation-container">
+    <view class="btn btn-del" bindtap="goBack">取消</view>
+    <view class="btn btn-save" bindtap="submit">保存</view>
+</view>

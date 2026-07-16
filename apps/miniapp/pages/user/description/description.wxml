@@ -1,0 +1,30 @@
+<view class="container">
+    <navbar title="个人优势" showBackBtn="1"></navbar>
+
+    <view class="bg">
+        <image src="/assets/images/bg.png" mode="aspectFill"/>
+    </view>
+
+    <view class="panel">
+        <view class="panel-header">
+            <view class="panel-title">编辑个人优势</view>
+        </view>
+        <view class="panel-body">
+            <view class="group">
+                <view class="label">个人优势</view>
+                <view class="value">
+                    <textarea
+                        class="value-text"
+                        maxlength="-1" placeholder="请输入个人优势" value="{{description}}" 
+                        auto-focus placeholder-class="placeholder" bindinput="changeValue">
+                    </textarea>
+                </view>
+            </view>
+        </view>
+    </view>
+</view>
+
+<view class="operation-container">
+    <view class="btn btn-del" bindtap="goBack">取消</view>
+    <view class="btn btn-save" bindtap="submit">保存</view>
+</view>

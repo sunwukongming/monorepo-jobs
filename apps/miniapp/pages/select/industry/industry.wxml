@@ -1,0 +1,19 @@
+<view class="container">
+    <navbar title="行业选择" showBackBtn="1"></navbar>
+
+    <view class="wrapper">
+        <view class="item" wx:for="{{items}}" wx:key="id" bindtap="clickItem" data-id="{{item.id}}">
+            <view>
+                <view class="title">{{item.name}}</view>
+                <view class="desc">{{item.description}}</view>
+            </view>
+            <view class="icon">
+                <image src="/assets/icons/arrow-right.png"></image>
+            </view>
+        </view>
+    </view>
+</view>
+<popup show="{{ showPopup }}" position="right" bind:close="closePopup" custom-style="height: 100%;width: 588rpx;">
+    <view style="height: {{statusBarHeight + navBarHeight}}px;"><!-- 修复自定义导航栏高度问题 --></view>
+    <view class="popup-item" wx:for="{{children}}" wx:key="id" bindtap="clickChild" data-id="{{item.id}}">{{item.name}}</view>
+</popup>

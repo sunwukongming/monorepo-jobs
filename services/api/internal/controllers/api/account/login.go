@@ -22,7 +22,7 @@ func LoginAction(c *gin.Context) {
 			return err
 		}
 		var user bolejiang.Account
-		ok, err := db.Default().Where("mobile = ?", request.Mobile).Get(&user)
+		ok, err := db.Get(db.Default().Where("mobile = ?", request.Mobile), &user)
 		if err != nil {
 			return err
 		}

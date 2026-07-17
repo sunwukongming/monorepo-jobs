@@ -29,13 +29,13 @@ func DetailAction(c *gin.Context) {
 		accountId := services.AuthGetAccountID(c)
 
 		var currentAccount bolejiang.Account
-		currentAccountOk, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		currentAccountOk, err := db.Get(db.Default().Where("id = ?", accountId), &currentAccount)
 		if err != nil {
 			return err
 		}
 
 		var apply bolejiang.AccountApply
-		ok, err := db.Default().Where("id = ?", request.ID).Get(&apply)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &apply)
 		if err != nil {
 			return err
 		}
@@ -47,8 +47,8 @@ func DetailAction(c *gin.Context) {
 		//destCity := "%" + apply.DestCity + "%"
 		destIndustry := "%" + apply.DestIndustry + "%"
 		//destPosition := "%" + apply.DestPosition + "%"
-		session := db.Default().Where(" dest_industry like ? and id != ?", destIndustry, apply.Id).OrderBy("updated_time desc")
-		err = session.Find(&applies)
+		session := db.Default().Where(" dest_industry like ? and id != ?", destIndustry, apply.Id).Order("updated_time desc")
+		err = session.Find(&applies).Error
 		if err != nil {
 			return err
 		}
@@ -57,7 +57,7 @@ func DetailAction(c *gin.Context) {
 
 		if currentAccountOk {
 			var like bolejiang.AccountApplyLike
-			ok, err = db.Default().Where("account_id = ? and account_apply_id = ?", accountId, apply.Id).Get(&like)
+			ok, err = db.Get(db.Default().Where("account_id = ? and account_apply_id = ?", accountId, apply.Id), &like)
 			if err != nil {
 				return err
 			}
@@ -67,7 +67,7 @@ func DetailAction(c *gin.Context) {
 					AuthState: 1,
 				}
 				var account bolejiang.Account
-				_, err = db.Default().Where("id = ?", apply.AccountId).Get(&account)
+				_, err = db.Get(db.Default().Where("id = ?", apply.AccountId), &account)
 				if err != nil {
 					return err
 				}
@@ -80,7 +80,7 @@ func DetailAction(c *gin.Context) {
 				response.ResumeUrl = account.ResumeUrl
 			} else {
 				var accountApplyResumeAuth bolejiang.AccountApplyResumeAuth
-				ok, err = db.Default().Where("request_account_id = ? and account_apply_id = ?", accountId, request.ID).Get(&accountApplyResumeAuth)
+				ok, err = db.Get(db.Default().Where("request_account_id = ? and account_apply_id = ?", accountId, request.ID), &accountApplyResumeAuth)
 				if err != nil {
 					return err
 				}
@@ -88,7 +88,7 @@ func DetailAction(c *gin.Context) {
 					response.ResumeAuth = &accountApplyResumeAuth
 					if accountApplyResumeAuth.AuthState == 1 {
 						var account bolejiang.Account
-						_, err = db.Default().Where("id = ?", apply.AccountId).Get(&account)
+						_, err = db.Get(db.Default().Where("id = ?", apply.AccountId), &account)
 						if err != nil {
 							return err
 						}

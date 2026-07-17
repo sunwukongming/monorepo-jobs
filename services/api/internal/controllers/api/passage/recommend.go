@@ -24,7 +24,7 @@ func RecommendAction(c *gin.Context) {
 			return err
 		}
 		var passage bolejiang.Passage
-		ok, err := db.Default().Where("id = ?", request.ID).Get(&passage)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &passage)
 		if err != nil {
 			return err
 		}
@@ -35,14 +35,14 @@ func RecommendAction(c *gin.Context) {
 		if accountId == "" {
 			return errors.New("当前账号未登录")
 		}
-		ok, err = db.Default().Where("account_id = ? and passage_id = ?", accountId, request.ID).Get(&passageRecommend)
+		ok, err = db.Get(db.Default().Where("account_id = ? and passage_id = ?", accountId, request.ID), &passageRecommend)
 		if err != nil {
 			return err
 		}
 		if ok {
 			//如果存在则不更改任何数据
 			passageRecommend.UpdatedTime = time.Now().Unix()
-			_, err = db.Default().Table(bolejiang.PassageRecommend{}).ID(passageRecommend.Id).Cols("updated_time").Update(passageRecommend)
+			err = db.Default().Model(&passageRecommend).Where("id = ?", passageRecommend.Id).Select("updated_time").Updates(passageRecommend).Error
 			if err != nil {
 				return err
 			}
@@ -50,7 +50,7 @@ func RecommendAction(c *gin.Context) {
 			//如果不存在则创建一个推荐数据
 			if request.ParentPassageRecommendId != 0 {
 				var parentRecommend bolejiang.PassageRecommend
-				ok, err := db.Default().ID(request.ParentPassageRecommendId).Get(&parentRecommend)
+				ok, err := db.Get(db.Default().Where("id = ?", request.ParentPassageRecommendId), &parentRecommend)
 				if err != nil {
 					return err
 				}
@@ -66,12 +66,12 @@ func RecommendAction(c *gin.Context) {
 			passageRecommend.PassageId = request.ID
 			passageRecommend.CreatedTime = time.Now().Unix()
 			passageRecommend.UpdatedTime = time.Now().Unix()
-			_, err = db.Default().Insert(&passageRecommend)
+			err = db.Default().Create(&passageRecommend).Error
 			if err != nil {
 				return err
 			}
 			passageRecommend.PathFull = passageRecommend.GetFullPath()
-			_, err := db.Default().Table(passageRecommend).ID(passageRecommend.Id).Cols("path_full").Update(passageRecommend)
+			err := db.Default().Model(&passageRecommend).Where("id = ?", passageRecommend.Id).Select("path_full").Updates(passageRecommend).Error
 			if err != nil {
 				return err
 			}

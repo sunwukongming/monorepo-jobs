@@ -39,7 +39,7 @@ func CreateApplyAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -48,7 +48,7 @@ func CreateApplyAction(c *gin.Context) {
 		}
 
 		var applies []bolejiang.AccountApply
-		err = db.Default().Where("account_id = ?", user.Id).Find(&applies)
+		err = db.Default().Where("account_id = ?", user.Id).Find(&applies).Error
 		if err != nil {
 			return err
 		}
@@ -83,12 +83,12 @@ func CreateApplyAction(c *gin.Context) {
 		accountApply.IsHelpRewardVisible = request.IsHelpRewardVisible
 		accountApply.CreatedTime = time.Now().Unix()
 		accountApply.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Insert(&accountApply)
+		err = db.Default().Create(&accountApply).Error
 		if err != nil {
 			return err
 		}
 		if accountApply.IsFirst == 1 {
-			db.Default().Table(bolejiang.AccountApply{}).Where("account_id = ? and id != ?", accountApply.AccountId, accountApply.Id).Update(map[string]interface{}{
+			db.Default().Model(&bolejiang.AccountApply{}).Where("account_id = ? and id != ?", accountApply.AccountId, accountApply.Id).Updates(map[string]interface{}{
 				"is_first": 0,
 			})
 		}

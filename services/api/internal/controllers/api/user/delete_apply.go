@@ -21,21 +21,21 @@ func DeleteApplyAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
 		if !ok {
 			return errors.New("用户不存在")
 		}
-		ok, err = db.Default().Where("id = ? and account_id = ?", request.Id, user.Id).Get(&accountApply)
+		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.Id, user.Id), &accountApply)
 		if err != nil {
 			return err
 		}
 		if !ok {
 			return errors.New("求职目标不存在")
 		}
-		_, err = db.Default().Table(bolejiang.AccountApply{}).Where("id = ?", accountApply.Id).Delete()
+		err = db.Default().Where("id = ?", accountApply.Id).Delete(&bolejiang.AccountApply{}).Error
 		if err != nil {
 			return err
 		}

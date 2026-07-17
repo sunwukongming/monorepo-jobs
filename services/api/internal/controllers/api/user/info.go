@@ -22,7 +22,7 @@ func InfoAction(c *gin.Context) {
 	var resp Resp
 	err := func() error {
 		id := services.AuthGetAccountID(c)
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -30,22 +30,22 @@ func InfoAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 		var accountApplies []bolejiang.AccountApply
-		err = db.Default().Where("account_id = ?", user.Id).OrderBy("is_first desc, created_time desc, id desc").Find(&accountApplies)
+		err = db.Default().Where("account_id = ?", user.Id).Order("is_first desc, created_time desc, id desc").Find(&accountApplies).Error
 		if err != nil {
 			return err
 		}
 		var accountWorks []bolejiang.AccountWork
-		err = db.Default().Where("account_id = ?", user.Id).OrderBy("start_time desc, id desc").Find(&accountWorks)
+		err = db.Default().Where("account_id = ?", user.Id).Order("start_time desc, id desc").Find(&accountWorks).Error
 		if err != nil {
 			return err
 		}
 		var accountProjects []bolejiang.AccountProject
-		err = db.Default().Where("account_id = ?", user.Id).OrderBy("start_time desc, id desc").Find(&accountProjects)
+		err = db.Default().Where("account_id = ?", user.Id).Order("start_time desc, id desc").Find(&accountProjects).Error
 		if err != nil {
 			return err
 		}
 		var accountEducations []bolejiang.AccountEducation
-		err = db.Default().Where("account_id = ?", user.Id).OrderBy("start_time desc, id desc").Find(&accountEducations)
+		err = db.Default().Where("account_id = ?", user.Id).Order("start_time desc, id desc").Find(&accountEducations).Error
 		if err != nil {
 			return err
 		}

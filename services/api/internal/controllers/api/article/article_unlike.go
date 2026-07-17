@@ -10,7 +10,7 @@ import (
 )
 
 func GetArticleUnlikeAction(model interface{}) gin.HandlerFunc {
-	tableName := db.Default().TableName(model)
+	tableName := db.TableName(model)
 	return func(c *gin.Context) {
 		type Request struct {
 			ID int `json:"id"`
@@ -21,7 +21,7 @@ func GetArticleUnlikeAction(model interface{}) gin.HandlerFunc {
 			if err := c.ShouldBindJSON(&request); err != nil {
 				return err
 			}
-			ok, err := db.Default().Table(model).ID(request.ID).Get(&instance)
+			ok, err := db.Get(db.Default().Table(db.TableName(model)).Where("id = ?", request.ID), &instance)
 			if err != nil {
 				return err
 			}
@@ -30,7 +30,7 @@ func GetArticleUnlikeAction(model interface{}) gin.HandlerFunc {
 			}
 			accountId := services.AuthGetAccountID(c)
 			var account bolejiang.Account
-			ok, err = db.Default().Where("id = ?", accountId).Get(&account)
+			ok, err = db.Get(db.Default().Where("id = ?", accountId), &account)
 			if err != nil {
 				return err
 			}
@@ -39,18 +39,18 @@ func GetArticleUnlikeAction(model interface{}) gin.HandlerFunc {
 			}
 
 			var articleLike bolejiang.ArticleLike
-			ok, err = db.Default().Where("article_table = ? and article_id = ? and account_id = ?", tableName, request.ID, account.Id).Get(&articleLike)
+			ok, err = db.Get(db.Default().Where("article_table = ? and article_id = ? and account_id = ?", tableName, request.ID, account.Id), &articleLike)
 			if err != nil {
 				return err
 			}
 			if !ok {
 				return errors.New("你还未点过赞，无法取消点赞")
 			}
-			_, err = db.Default().Table(articleLike).Where("id = ?", articleLike.Id).Delete()
+			err = db.Default().Where("id = ?", articleLike.Id).Delete(&articleLike).Error
 			if err != nil {
 				return err
 			}
-			_, err = db.Default().Exec("update "+tableName+" as a set like_count = (select count(*) from article_like where article_table = ? and article_id = ?) where id = ?", tableName, request.ID, request.ID)
+			err = db.Default().Exec("update "+tableName+" as a set like_count = (select count(*) from article_like where article_table = ? and article_id = ?) where id = ?", tableName, request.ID, request.ID).Error
 			if err != nil {
 				return err
 			}

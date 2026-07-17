@@ -27,7 +27,7 @@ func CreateEducationAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func CreateEducationAction(c *gin.Context) {
 		accountEducation.Experience = request.Experience
 		accountEducation.CreatedTime = time.Now().Unix()
 		accountEducation.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Insert(&accountEducation)
+		err = db.Default().Create(&accountEducation).Error
 		if err != nil {
 			return err
 		}

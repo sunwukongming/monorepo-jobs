@@ -23,7 +23,7 @@ func DeliverAction(c *gin.Context) {
 			return err
 		}
 		var passage bolejiang.Passage
-		ok, err := db.Default().Where("id = ?", request.ID).Get(&passage)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &passage)
 		if err != nil {
 			return err
 		}
@@ -34,22 +34,22 @@ func DeliverAction(c *gin.Context) {
 		if accountId == "" {
 			return errors.New("用户不存在")
 		}
-		var account bolejiang.Account
-		ok, err = db.Default().Where("id = ?", accountId).Get(&account)
+		// Common 中间件已校验并写入 context，直接复用避免重复查询
+		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
 			return err
 		}
-		if !ok {
-			return errors.New("账号不存在")
-		}
+		account := *accountPtr
 		if strings.Trim(account.Mobile, " ") == "" {
 			return errors.New("您的账号手机号未填写，请进入个人中心填写手机号")
 		}
 		//查询手机号是否存在
-		ok, err = db.Default().Table(bolejiang.Deliver{}).Where("passage_id = ? and mobile = ? and is_real = 1", passage.Id, account.Mobile).Exist()
+		var deliverCount int64
+		err = db.Default().Model(&bolejiang.Deliver{}).Where("passage_id = ? and mobile = ? and is_real = 1", passage.Id, account.Mobile).Count(&deliverCount).Error
 		if err != nil {
 			return err
 		}
+		ok = deliverCount > 0
 		if ok {
 			//如果投递存在且是真投递
 			if account.Id != 0 {
@@ -59,7 +59,7 @@ func DeliverAction(c *gin.Context) {
 			}
 		}
 
-		ok, err = db.Default().Where("passage_id = ? and mobile = ? and is_real = 0", passage.Id, account.Mobile).Get(&deliver)
+		ok, err = db.Get(db.Default().Where("passage_id = ? and mobile = ? and is_real = 0", passage.Id, account.Mobile), &deliver)
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func DeliverAction(c *gin.Context) {
 			deliver.ResumeUrl = account.ResumeUrl
 			deliver.DeliverTime = time.Now().Unix()
 			deliver.UpdatedTime = time.Now().Unix()
-			_, err := db.Default().Table(bolejiang.Deliver{}).ID(deliver.Id).Cols("is_real", "progress", "resume_url", "deliver_time", "updated_time").Update(deliver)
+			err := db.Default().Model(&deliver).Where("id = ?", deliver.Id).Select("is_real", "progress", "resume_url", "deliver_time", "updated_time").Updates(deliver).Error
 			if err != nil {
 				return err
 			}
@@ -85,7 +85,7 @@ func DeliverAction(c *gin.Context) {
 			deliver.ResumeUrl = account.ResumeUrl
 			var passageRecommend bolejiang.PassageRecommend
 			if request.PassageRecommendId != 0 {
-				ok, err := db.Default().Where("id = ?", request.PassageRecommendId).Get(&passageRecommend)
+				ok, err := db.Get(db.Default().Where("id = ?", request.PassageRecommendId), &passageRecommend)
 				if err != nil {
 					return err
 				}
@@ -110,7 +110,7 @@ func DeliverAction(c *gin.Context) {
 			deliver.DeliverTime = time.Now().Unix()
 			deliver.CreatedTime = time.Now().Unix()
 			deliver.UpdatedTime = time.Now().Unix()
-			_, err = db.Default().Insert(&deliver)
+			err = db.Default().Create(&deliver).Error
 			if err != nil {
 				return err
 			}

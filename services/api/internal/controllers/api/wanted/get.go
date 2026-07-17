@@ -53,7 +53,7 @@ func GetAction(c *gin.Context) {
 		}
 		accountId := services.AuthGetAccountID(c)
 		var articleLike bolejiang.ArticleLike
-		ok, err := db.Default().Where("article_table = ? and article_id = ? and account_id = ?", tableName, request.ID, accountId).Get(&articleLike)
+		ok, err := db.Get(db.Default().Where("article_table = ? and article_id = ? and account_id = ?", tableName, request.ID, accountId), &articleLike)
 		if err != nil {
 			return err
 		}

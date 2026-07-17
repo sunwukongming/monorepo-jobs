@@ -30,38 +30,20 @@ func ListLikeAction(c *gin.Context) {
 		accountId := services.AuthGetAccountID(c)
 		var passages []bolejiang.Passage
 		page = services.NewPage(request.Page, request.PageSize)
-		query := db.Default().Table(new(bolejiang.Passage)).Select("passage.*").Where("account_id = ?", accountId).
-			Join("LEFT", "passage_like", "passage.id = passage_like.passage_id").
-			OrderBy("passage_like.id desc")
+		query := db.Default().Table("passage").Select("passage.*").Where("account_id = ?", accountId).
+			Joins("LEFT JOIN passage_like ON passage.id = passage_like.passage_id").
+			Order("passage_like.id desc")
 
-		if request.SimilarPassageId != 0 {
-			var similarPassage bolejiang.Passage
-			ok, err := db.Default().Where("id = ?", similarPassage).Get(&similarPassage)
-			if err != nil {
-				return err
-			}
-			if ok {
-				query.Where("passage.industry_path like ?", similarPassage.IndustryPath+"%")
-				query.Where("passage.position_tag_path like ?", similarPassage.PositionTagPath+"%")
-			}
+		query, err := applySimilarFilter(query, request.SimilarPassageId)
+		if err != nil {
+			return err
 		}
 		if request.Keyword != "" {
-			query.Where("(passage.title like ? or passage.edit_content like ?)", "%"+request.Keyword+"%", "%"+request.Keyword+"%")
+			query = query.Where("(passage.title like ? or passage.edit_content like ?)", "%"+request.Keyword+"%", "%"+request.Keyword+"%")
 		}
-		if request.CityId != 0 {
-			query.Where("passage.city_id = ?", request.CityId)
-		}
-		if request.DistrictId != 0 {
-			query.Where("passage.district_id = ?", request.DistrictId)
-		}
-		if request.IndustryPath != "" {
-			query.Where("(passage.industry_path like ? or passage.industry_path = ?)", request.IndustryPath+"-%", request.IndustryPath)
-		}
-		if request.PositionTagPath != "" {
-			query.Where("(passage.position_tag_path like ? or passage.position_tag_path = ?)", request.PositionTagPath+"-%", request.PositionTagPath)
-		}
+		query = applyPassageGeoFilters(query, request.CityId, request.DistrictId, request.IndustryPath, request.PositionTagPath)
 
-		err := page.Execute(query, &passages)
+		err = page.Execute(query, &passages)
 		if err != nil {
 			return err
 		}

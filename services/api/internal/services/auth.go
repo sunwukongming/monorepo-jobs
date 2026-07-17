@@ -52,7 +52,7 @@ func AuthGetAccountOrError(c *gin.Context) (*bolejiang.Account, error) {
 
 	userId := AuthGetAccountID(c)
 	var account bolejiang.Account
-	ok, err := db.Default().Where("id = ?", userId).Get(&account)
+	ok, err := db.Get(db.Default().Where("id = ?", userId), &account)
 	if err != nil {
 		return nil, err
 	}

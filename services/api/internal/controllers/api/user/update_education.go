@@ -28,7 +28,7 @@ func UpdateEducationAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -36,7 +36,7 @@ func UpdateEducationAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 
-		ok, err = db.Default().Where("id = ? and account_id = ?", request.ID, user.Id).Get(&accountEducation)
+		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.ID, user.Id), &accountEducation)
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func UpdateEducationAction(c *gin.Context) {
 		accountEducation.EndTime = request.EndTime
 		accountEducation.Experience = request.Experience
 		accountEducation.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().ID(accountEducation.Id).AllCols().Update(accountEducation)
+		err = db.Default().Model(&accountEducation).Where("id = ?", accountEducation.Id).Select("*").Updates(accountEducation).Error
 		if err != nil {
 			return err
 		}

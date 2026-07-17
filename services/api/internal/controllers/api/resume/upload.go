@@ -61,7 +61,7 @@ func UploadAction(c *gin.Context) {
 		s := ossSvc.PublicURL(filename)
 		data["url"] = s
 		var account bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&account)
+		ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,7 @@ func UploadAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 		account.ResumeUrl = s
-		_, err = db.Default().Where("id = ?", account.Id).Cols("resume_url").Update(account)
+		err = db.Default().Model(&account).Where("id = ?", account.Id).Select("resume_url").Updates(account).Error
 		if err != nil {
 			return err
 		}

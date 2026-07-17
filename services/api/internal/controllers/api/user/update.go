@@ -63,7 +63,7 @@ func UpdateAction(c *gin.Context) {
 		toUpdateRelevant := false
 		accountId := services.AuthGetAccountID(c)
 		var account bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&account)
+		ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 		if err != nil {
 			return err
 		}
@@ -135,9 +135,11 @@ func UpdateAction(c *gin.Context) {
 			cols = append(cols, "gender")
 		}
 
-		_, err = db.Default().ID(account.Id).Cols(cols...).Update(account)
-		if err != nil {
-			return err
+		if len(cols) > 0 {
+			err = db.Default().Model(&account).Where("id = ?", account.Id).Select(cols).Updates(account).Error
+			if err != nil {
+				return err
+			}
 		}
 		if toUpdateRelevant {
 			services.AccountUpdateRelevant(account)

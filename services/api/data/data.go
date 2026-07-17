@@ -41,30 +41,30 @@ func (box DictionaryBox) GetItem(id int) bolejiang.DataDictionary {
 
 func Load() error {
 	cities := make([]bolejiang.DataCity, 0)
-	err := db.Default().OrderBy("sort, id").Find(&cities)
+	err := db.Default().Order("sort, id").Find(&cities).Error
 	if err != nil {
 		return err
 	}
 	districts := make([]bolejiang.DataDistrict, 0)
-	err = db.Default().OrderBy("sort, id").Find(&districts)
+	err = db.Default().Order("sort, id").Find(&districts).Error
 	if err != nil {
 		return err
 	}
 
 	industries := make([]bolejiang.DataIndustry, 0)
-	err = db.Default().OrderBy("level, sort, id").Find(&industries)
+	err = db.Default().Order("level, sort, id").Find(&industries).Error
 	if err != nil {
 		return err
 	}
 
 	positionTags := []bolejiang.DataPositionTag{}
-	err = db.Default().OrderBy("level, sort, id").Find(&positionTags)
+	err = db.Default().Order("level, sort, id").Find(&positionTags).Error
 	if err != nil {
 		return err
 	}
 
 	dictionaries := []bolejiang.DataDictionary{}
-	err = db.Default().OrderBy("fid, sort, id").Find(&dictionaries)
+	err = db.Default().Order("fid, sort, id").Find(&dictionaries).Error
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func Load() error {
 			}
 		}
 		if dbPath != industry.Path {
-			_, _ = db.Default().ID(industry.Id).Cols("path").Update(industry)
+			_ = db.Default().Model(&industry).Where("id = ?", industry.Id).Select("path").Updates(industry).Error
 		}
 		IndustryMap[industry.Path] = industry
 	}
@@ -167,7 +167,7 @@ func Load() error {
 			}
 		}
 		if dbPath != positionTag.Path {
-			_, _ = db.Default().ID(positionTag.Id).Cols("path").Update(positionTag)
+			_ = db.Default().Model(&positionTag).Where("id = ?", positionTag.Id).Select("path").Updates(positionTag).Error
 		}
 		PositionTagMap[positionTag.Path] = positionTag
 	}
@@ -182,7 +182,7 @@ func Load() error {
 
 	//获取字典配置
 	var ddcs []bolejiang.DataDictionaryConfig
-	err = db.Default().Find(&ddcs)
+	err = db.Default().Find(&ddcs).Error
 	if err != nil {
 		return err
 	}

@@ -34,16 +34,14 @@ func UpdateManualAction(c *gin.Context) {
 		if accountId == "" {
 			return errors.New("用户不存在")
 		}
-		var currentAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		// Common 中间件已校验并写入 context，直接复用避免重复查询
+		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
 			return err
 		}
-		if !ok {
-			return errors.New("账号不存在")
-		}
+		currentAccount := *accountPtr
 
-		ok, err = db.Default().ID(request.ID).Where("recommend_account_id = ? and is_real = 1", currentAccount.Id).Get(&deliver)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID).Where("recommend_account_id = ? and is_real = 1", currentAccount.Id), &deliver)
 		if err != nil {
 			return err
 		}
@@ -56,7 +54,7 @@ func UpdateManualAction(c *gin.Context) {
 		deliver.ResumeUrl = request.ResumeUrl
 		deliver.RecommendComment = request.RecommendComment
 		deliver.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().ID(deliver.Id).Cols("resume_url", "recommend_comment", "updated_time").Update(deliver)
+		err = db.Default().Model(&deliver).Where("id = ?", deliver.Id).Select("resume_url", "recommend_comment", "updated_time").Updates(deliver).Error
 		if err != nil {
 			return err
 		}

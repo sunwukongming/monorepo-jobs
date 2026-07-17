@@ -25,11 +25,7 @@ func GetAction(c *gin.Context) {
 	}
 	var request GetRequest
 	var response Response
-	//var passage bolejiang.Passage
-	//var passageCompanyFull services.PassageCompanyFull
-	//var passageCompany bolejiang.PassageCompany
 	var passageRecommend bolejiang.PassageRecommend
-	//isLike := false
 	err := func() error {
 		if err := c.ShouldBindJSON(&request); err != nil {
 			return err
@@ -38,7 +34,7 @@ func GetAction(c *gin.Context) {
 			return errors.New("职位id必须填写")
 		}
 		if request.PassageRecommendId != "" {
-			ok, err := db.Default().Where("id = ?", request.PassageRecommendId).Get(&passageRecommend)
+			ok, err := db.Get(db.Default().Where("id = ?", request.PassageRecommendId), &passageRecommend)
 			if err != nil {
 				return err
 			}
@@ -63,8 +59,8 @@ func GetAction(c *gin.Context) {
 				return errors.New("文章类型错误")
 			}
 			tablename := utils.SnakeCase(request.ArticleType)
-			var article = map[string]string{}
-			ok, err := db.Default().Table(tablename).Where("id = ?", request.ArticleId).Get(&article)
+			var article = map[string]interface{}{}
+			ok, err := db.Get(db.Default().Table(tablename).Where("id = ?", request.ArticleId), &article)
 			if err != nil {
 				return err
 			}
@@ -73,7 +69,7 @@ func GetAction(c *gin.Context) {
 			}
 			recommendAccountId := utils.IntVal(article["account_id"])
 			if recommendAccountId != 0 {
-				ok, err := db.Default().Where("account_id = ? and passage_id = ?", recommendAccountId, request.ID).Get(&passageRecommend)
+				ok, err := db.Get(db.Default().Where("account_id = ? and passage_id = ?", recommendAccountId, request.ID), &passageRecommend)
 				if err != nil {
 					return err
 				}
@@ -83,7 +79,7 @@ func GetAction(c *gin.Context) {
 					passageRecommend.PassageId = int(request.ID)
 					passageRecommend.CreatedTime = time.Now().Unix()
 					passageRecommend.UpdatedTime = time.Now().Unix()
-					_, err = db.Default().Insert(&passageRecommend)
+					err = db.Default().Create(&passageRecommend).Error
 					if err != nil {
 						return err
 					}
@@ -99,67 +95,35 @@ func GetAction(c *gin.Context) {
 		response.PassageFull = passageResponse
 		passage := passageResponse.Passage
 
-		// ok, err := db.Default().Where("id = ?", request.ID).Get(&passage)
-		// if err != nil {
-		// 	return err
-		// }
-		// if !ok {
-		// 	return errors.New("职位数据不存在")
-		// }
-
-		// isLike, err = db.Default().Table(new(bolejiang.PassageLike)).Where("account_id = ? and passage_id = ?", accountId, passage.Id).Exist()
-		// if err != nil {
-		// 	return err
-		// }
-		// _, err = db.Default().Where("id = ?", passage.PsgCompany).Get(&passageCompany)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// passageCompany, err := query.PassageCompany.Where(query.PassageCompany.ID).First()
-		// if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		// 	return err
-		// }
-		// if err == nil {
-		// 	full, err := services.CompanyFullGet(passageCompany)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	passageCompanyFull = *full
-		// }
-
-		//获取当前用户
-		var currentAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		//获取当前用户（Common 中间件已校验并写入 context，直接复用避免重复查询）
+		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
 			return err
 		}
-		if !ok {
-			return errors.New("账号不存在")
-		}
+		currentAccount := *accountPtr
 		//deliver已经存在则读取deliver中的account, 若不存在，则读取传过来的推荐的account
 		var deliver bolejiang.Deliver
 		session := db.Default().Where("passage_id = ?", passage.ID)
 		if utils.StringTrim(currentAccount.Mobile) == "" {
-			session.Where("account_id = ?", currentAccount.Id)
+			session = session.Where("account_id = ?", currentAccount.Id)
 		} else {
-			session.Where("mobile = ?", currentAccount.Mobile)
+			session = session.Where("mobile = ?", currentAccount.Mobile)
 		}
-		ok, err = session.Get(&deliver)
+		ok, err := db.Get(session, &deliver)
 		if err != nil {
 			return err
 		}
 		if ok {
 			var recommendAccount bolejiang.Account
 			if deliver.RecommendAccountId != 0 {
-				_, err = db.Default().Where("id = ?", deliver.RecommendAccountId).Get(&recommendAccount)
+				_, err = db.Get(db.Default().Where("id = ?", deliver.RecommendAccountId), &recommendAccount)
 				if err != nil {
 					return err
 				}
 			}
 			if deliver.PassageRecommendId != 0 {
 				passageRecommend = bolejiang.PassageRecommend{}
-				ok, err := db.Default().Where("passage_id = ? and id = ?", passage.ID, deliver.PassageRecommendId).Get(&passageRecommend)
+				ok, err := db.Get(db.Default().Where("passage_id = ? and id = ?", passage.ID, deliver.PassageRecommendId), &passageRecommend)
 				if err != nil {
 					return err
 				}
@@ -167,16 +131,7 @@ func GetAction(c *gin.Context) {
 					return errors.New("该职位的推荐信息无效")
 				}
 			}
-			response.RecommendAccount = gin.H{
-				"id":                 recommendAccount.Id,
-				"name":               recommendAccount.Name,
-				"mobile":             recommendAccount.Mobile,
-				"recommendCount":     passageRecommend.RecommendCount,
-				"recommendCountL2":   passageRecommend.RecommendCountL2,
-				"shareCount":         passageRecommend.ShareCount,
-				"shareCountL2":       passageRecommend.ShareCountL2,
-				"passageRecommendId": passageRecommend.Id,
-			}
+			response.RecommendAccount = accountShareInfo(recommendAccount, passageRecommend)
 		} else {
 			deliver.PassageId = int(passage.ID)
 			deliver.AccountId = currentAccount.Id
@@ -192,20 +147,11 @@ func GetAction(c *gin.Context) {
 				deliver.PassageRecommendPathFull = passageRecommend.PathFull
 				deliver.RecommendAccountId = passageRecommend.AccountId
 				var recommendAccount bolejiang.Account
-				_, err = db.Default().Where("id = ?", passageRecommend.AccountId).Get(&recommendAccount)
+				_, err = db.Get(db.Default().Where("id = ?", passageRecommend.AccountId), &recommendAccount)
 				if err != nil {
 					return err
 				}
-				response.RecommendAccount = gin.H{
-					"id":                 recommendAccount.Id,
-					"name":               recommendAccount.Name,
-					"mobile":             recommendAccount.Mobile,
-					"recommendCount":     passageRecommend.RecommendCount,
-					"recommendCountL2":   passageRecommend.RecommendCountL2,
-					"shareCount":         passageRecommend.ShareCount,
-					"shareCountL2":       passageRecommend.ShareCountL2,
-					"passageRecommendId": passageRecommend.Id,
-				}
+				response.RecommendAccount = accountShareInfo(recommendAccount, passageRecommend)
 				if deliver.AccountId != passageRecommend.AccountId {
 					deliver.Type = 2
 				}
@@ -216,47 +162,25 @@ func GetAction(c *gin.Context) {
 			deliver.IsReal = 0
 			deliver.CreatedTime = time.Now().Unix()
 			deliver.UpdatedTime = time.Now().Unix()
-			_, err = db.Default().Insert(&deliver)
+			err = db.Default().Create(&deliver).Error
 			if err != nil {
 				return err
 			}
 			services.CountUpdatePassageRecommendByPath(deliver.GetPassageRecommendFullPath())
 		}
 
-		// 获取自己的shareAccount
+		// 获取自己的 shareAccount
 		var selfPassageRecommend bolejiang.PassageRecommend
-		_, err = db.Default().Where("account_id = ? and passage_id = ?", currentAccount.Id, request.ID).Get(&selfPassageRecommend)
+		_, err = db.Get(db.Default().Where("account_id = ? and passage_id = ?", currentAccount.Id, request.ID), &selfPassageRecommend)
 		if err != nil {
 			return err
 		}
-		response.SelfAccount = gin.H{
-			"id":                 currentAccount.Id,
-			"name":               currentAccount.Name,
-			"mobile":             currentAccount.Mobile,
-			"recommendCount":     selfPassageRecommend.RecommendCount,
-			"recommendCountL2":   selfPassageRecommend.RecommendCountL2,
-			"shareCount":         selfPassageRecommend.ShareCount,
-			"shareCountL2":       selfPassageRecommend.ShareCountL2,
-			"passageRecommendId": selfPassageRecommend.Id,
-		}
+		response.SelfAccount = accountShareInfo(currentAccount, selfPassageRecommend)
 		return nil
 	}()
 	if err != nil {
 		services.ResponseError(c, -1, err.Error(), nil)
 		return
 	}
-	// passageResponse := services.PassageResponse{
-	// 	Passage:              passage,
-	// 	OutName:              passageCompanyFull.OutName,
-	// 	Address:              passageCompanyFull.Address,
-	// 	CompanyRemark:        passageCompanyFull.Remark,
-	// 	CompanyPassageAmount: passageCompanyFull.PassageAmount,
-	// 	CityName:             data.CityMap[passage.CityId].Name,
-	// 	DistrictName:         data.DistrictMap[passage.DistrictId].Name,
-	// 	IndustryName:         data.IndustryMap[passage.IndustryPath].Name,
-	// 	PositionTagName:      data.PositionTagMap[passage.PositionTagPath].Name,
-	// 	IsLike:               isLike,
-	// }
-	//response.PassageResponse = passageResponse
 	services.ResponseSuccess(c, response)
 }

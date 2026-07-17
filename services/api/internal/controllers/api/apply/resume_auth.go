@@ -26,7 +26,7 @@ func ResumeAuthAction(c *gin.Context) {
 		}
 
 		var currentAccount bolejiang.Account
-		currentAccountOk, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		currentAccountOk, err := db.Get(db.Default().Where("id = ?", accountId), &currentAccount)
 		if err != nil {
 			return err
 		}
@@ -38,7 +38,7 @@ func ResumeAuthAction(c *gin.Context) {
 		}
 
 		var accountApply bolejiang.AccountApply
-		ok, err := db.Default().Where("id = ?", request.ID).Get(&accountApply)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &accountApply)
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ func ResumeAuthAction(c *gin.Context) {
 			return errors.New("职位不存在")
 		}
 		var accountApplyResumeAuth bolejiang.AccountApplyResumeAuth
-		ok, err = db.Default().Where("request_account_id = ? and account_apply_id = ?", accountId, request.ID).Get(&accountApplyResumeAuth)
+		ok, err = db.Get(db.Default().Where("request_account_id = ? and account_apply_id = ?", accountId, request.ID), &accountApplyResumeAuth)
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func ResumeAuthAction(c *gin.Context) {
 		accountApplyResumeAuth.RequestAccountId = utils.IntVal(accountId)
 		accountApplyResumeAuth.CreatedTime = time.Now().Unix()
 		accountApplyResumeAuth.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Insert(&accountApplyResumeAuth)
+		err = db.Default().Create(&accountApplyResumeAuth).Error
 		if err != nil {
 			return err
 		}

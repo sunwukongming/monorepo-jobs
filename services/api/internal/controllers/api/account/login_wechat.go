@@ -43,7 +43,7 @@ func LoginWechatAction(c *gin.Context) {
 		openId := jsoniter.Get(body, "openid").ToString()
 		unionId := jsoniter.Get(body, "unionid").ToString()
 		var account bolejiang.Account
-		ok, err := db.Default().Where("unionid = ?", unionId).Get(&account)
+		ok, err := db.Get(db.Default().Where("unionid = ?", unionId), &account)
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func LoginWechatAction(c *gin.Context) {
 			account.Unionid = unionId
 			account.CreatedTime = time.Now().Unix()
 			account.UpdatedTime = time.Now().Unix()
-			_, err := db.Default().InsertOne(&account)
+			err := db.Default().Create(&account).Error
 			if err != nil {
 				return err
 			}

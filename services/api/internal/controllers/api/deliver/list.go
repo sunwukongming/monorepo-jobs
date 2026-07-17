@@ -5,7 +5,6 @@ import (
 	"app/internal/services"
 	"app/models/bolejiang"
 	"app/pkg/utils"
-	"errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,39 +25,38 @@ func ListAction(c *gin.Context) {
 			return err
 		}
 		accountId := services.AuthGetAccountID(c)
-		//获取当前用户
-		var currentAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		//获取当前用户（Common 中间件已校验并写入 context，直接复用避免重复查询）
+		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
 			return err
 		}
-		if !ok {
-			return errors.New("账号不存在")
-		}
-		var deliverPassages []DeliverPassage
+		currentAccount := *accountPtr
+		// 仅取投递(deliver)本表数据；职位详情由下方 PassageListFullByIDs 单独补全。
+		// （原 xorm `extends` 多表嵌入扫描 GORM 不支持，故改为单表查询 + 二次聚合。）
+		var delivers []bolejiang.Deliver
 		page = services.NewPage(request.Page, request.PageSize)
-		query := db.Default().Table(bolejiang.Deliver{}).
-			Join("LEFT", "passage", "deliver.passage_id = passage.id").
-			Join("LEFT", "account", "deliver.account_id = account.id").
+		query := db.Default().Table("deliver").Select("deliver.*").
+			Joins("LEFT JOIN passage ON deliver.passage_id = passage.id").
+			Joins("LEFT JOIN account ON deliver.account_id = account.id").
 			Where("deliver.is_real > 0").
-			OrderBy("deliver.deliver_time desc, deliver.created_time desc")
+			Order("deliver.deliver_time desc, deliver.created_time desc")
 		if request.IsSelf != 0 {
-			query.Where("deliver.mobile = ?", currentAccount.Mobile)
+			query = query.Where("deliver.mobile = ?", currentAccount.Mobile)
 		} else {
-			query.Where("deliver.recommend_account_id = ? and deliver.mobile != ?", accountId, currentAccount.Mobile)
+			query = query.Where("deliver.recommend_account_id = ? and deliver.mobile != ?", accountId, currentAccount.Mobile)
 		}
 		if request.Keyword != "" {
-			query.Where("(passage.title like ? or passage.edit_content like ? or deliver.name like ? or deliver.mobile like ?)",
+			query = query.Where("(passage.title like ? or passage.edit_content like ? or deliver.name like ? or deliver.mobile like ?)",
 				"%"+request.Keyword+"%", "%"+request.Keyword+"%", "%"+request.Keyword+"%", "%"+request.Keyword+"%")
 		}
-		err = page.Execute(query, &deliverPassages)
+		err = page.Execute(query, &delivers)
 		if err != nil {
 			return err
 		}
 
-		passageIDs := make([]uint32, 0, len(deliverPassages))
-		for _, deliverPassage := range deliverPassages {
-			passageIDs = append(passageIDs, uint32(deliverPassage.Passage.Id))
+		passageIDs := make([]uint32, 0, len(delivers))
+		for _, deliver := range delivers {
+			passageIDs = append(passageIDs, uint32(deliver.PassageId))
 		}
 		passageFulls, err := services.PassageListFullByIDs(passageIDs, uint32(utils.IntVal(accountId)))
 		if err != nil {
@@ -66,63 +64,17 @@ func ListAction(c *gin.Context) {
 		}
 
 		rows := []interface{}{}
-		for _, passage := range deliverPassages {
+		for _, deliver := range delivers {
 			row := map[string]any{}
 			for _, passageFull := range passageFulls {
-				if passageFull.Passage.ID == uint32(passage.Deliver.PassageId) {
+				if passageFull.Passage.ID == uint32(deliver.PassageId) {
 					row["passage"] = passageFull
 				}
 			}
-			row["deliver"] = passage.Deliver
+			row["deliver"] = deliver
 			rows = append(rows, row)
 		}
 		page.List = rows
-
-		comapnyAddressIds := make([]int, 0)
-		//passageIds := make([]int, 0)
-		//passageRecommendIds := make([]int, 0)
-		for _, deliverPassage := range deliverPassages {
-			//passageIds = append(passageIds, deliverPassage.Passage.Id)
-			//passageRecommendIds = append(passageRecommendIds, passage.PassageRecommendId)
-			comapnyAddressIds = append(comapnyAddressIds, deliverPassage.Passage.CompanyAddressId)
-		}
-		passageCompanies := make([]bolejiang.PassageCompany, 0)
-		err = db.Default().In("address_id", comapnyAddressIds).Find(&passageCompanies)
-		if err != nil {
-			return err
-		}
-
-		/*
-			var delivers []bolejiang.Deliver
-			err = db.Default().Where("recommend_account_id = ?", accountId).In("passage_id", passageIds).OrderBy("updated_time desc, id desc").Find(&delivers)
-			if err != nil {
-				return err
-			}
-		*/
-		// rows := []interface{}{}
-		// for _, passage := range deliverPassages {
-		// 	item := services.PassageResponse{
-		// 		Passage:         passage.Passage,
-		// 		CityName:        data.CityMap[passage.Passage.CityId].Name,
-		// 		DistrictName:    data.DistrictMap[passage.Passage.DistrictId].Name,
-		// 		IndustryName:    data.IndustryMap[passage.Passage.IndustryPath].Name,
-		// 		PositionTagName: data.PositionTagMap[passage.Passage.PositionTagPath].Name,
-		// 	}
-		// 	for _, passageCompany := range passageCompanies {
-		// 		if item.PsgCompany == passageCompany.Id {
-		// 			item.Address = passageCompany.Address
-		// 			item.OutName = passageCompany.OutName
-		// 			item.CompanyRemark = passageCompany.Remark
-		// 		}
-		// 	}
-		// 	passage.Deliver.AccountName = passage.Account.Name
-		// 	passage.Deliver.AccountMobile = passage.Account.Mobile
-		// 	rows = append(rows, map[string]interface{}{
-		// 		"deliver": passage.Deliver,
-		// 		"passage": item,
-		// 	})
-		// }
-		// page.List = rows
 		return nil
 	}()
 	if err != nil {

@@ -16,6 +16,7 @@ tooling/scripts   仓库脚本
 ## 前置要求
 
 - Node.js >= 20（见 `.nvmrc`）
+- 包管理使用 **npm**（workspaces + `package-lock.json`），不使用 pnpm / yarn
 - Go >= 1.26
 - 微信开发者工具（打开 `apps/miniapp`）
 
@@ -48,7 +49,8 @@ API 接口说明见 `services/api/README.md`。
 
 ## 约定
 
-- JS/TS：npm workspaces
+- JS/TS：**npm** workspaces（统一用 `npm`，`npm install` / `npm run -w <pkg>`；提交 `package-lock.json`）
 - Go：`services/api` 使用 Go 1.26 + modules；构建时 `GOWORK=off` 避免与根目录 `go.work` 冲突（`vendor/` 不入库）
+- ORM：统一使用 **GORM**（`gorm.io/gorm`）。`db.Default()` 返回 `*gorm.DB`；单条查询用 `db.Get(tx, &dest)` 保留旧的 `(存在?, error)` 语义。模型代码生成见 `cmd/genmodel`
 - 跨语言任务：Makefile
 - 接口契约：`contracts/openapi/openapi.yaml`

@@ -20,13 +20,13 @@ func GetArticlesAction(model interface{}) gin.HandlerFunc {
 			if err := c.ShouldBindJSON(&request); err != nil {
 				return err
 			}
-			session := db.Default().Table(model).Where("status = 0").OrderBy("is_top desc, time_update desc, id desc")
+			session := db.Default().Table(db.TableName(model)).Where("status = 0").Order("is_top desc, time_update desc, id desc")
 			keyword := "%" + request.Keyword + "%"
 			if request.Keyword != "" {
-				session.Where("title like ? or content like ?", keyword, keyword)
+				session = session.Where("title like ? or content like ?", keyword, keyword)
 			}
 			page = services.NewPage(request.Page, request.PageSize)
-			var models []map[string]string
+			var models []map[string]interface{}
 			err := page.Execute(session, &models)
 			if err != nil {
 				return err

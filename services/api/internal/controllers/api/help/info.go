@@ -21,7 +21,7 @@ func InfoAction(c *gin.Context) {
 		}
 		currentAccountId := services.AuthGetAccountID(c)
 		var helperAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", currentAccountId).Get(&helperAccount)
+		ok, err := db.Get(db.Default().Where("id = ?", currentAccountId), &helperAccount)
 		if err != nil {
 			return err
 		}
@@ -29,7 +29,7 @@ func InfoAction(c *gin.Context) {
 			return errors.New("当前用户不存在")
 		}
 		var accountApply bolejiang.AccountApply
-		ok, err = db.Default().Where("id = ?", request.AccountApplyID).Get(&accountApply)
+		ok, err = db.Get(db.Default().Where("id = ?", request.AccountApplyID), &accountApply)
 		if err != nil {
 			return err
 		}
@@ -38,7 +38,7 @@ func InfoAction(c *gin.Context) {
 		}
 
 		var accountHelp bolejiang.AccountHelp
-		_, err = db.Default().Where("account_apply_id = ? and helper_account_id = ?", request.AccountApplyID, currentAccountId).Get(&accountHelp)
+		_, err = db.Get(db.Default().Where("account_apply_id = ? and helper_account_id = ?", request.AccountApplyID, currentAccountId), &accountHelp)
 		if err != nil {
 			return err
 		}

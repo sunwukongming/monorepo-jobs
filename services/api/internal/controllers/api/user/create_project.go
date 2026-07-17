@@ -28,7 +28,7 @@ func CreateProjectAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -45,7 +45,7 @@ func CreateProjectAction(c *gin.Context) {
 		accountProject.Link = request.Link
 		accountProject.CreatedTime = time.Now().Unix()
 		accountProject.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Insert(&accountProject)
+		err = db.Default().Create(&accountProject).Error
 		if err != nil {
 			return err
 		}

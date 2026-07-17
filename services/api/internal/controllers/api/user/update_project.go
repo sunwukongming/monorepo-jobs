@@ -29,7 +29,7 @@ func UpdateProjectAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func UpdateProjectAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 
-		ok, err = db.Default().Where("id = ? and account_id = ?", request.ID, user.Id).Get(&accountProject)
+		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.ID, user.Id), &accountProject)
 		if err != nil {
 			return err
 		}
@@ -54,7 +54,7 @@ func UpdateProjectAction(c *gin.Context) {
 		accountProject.Performance = request.Performance
 		accountProject.Link = request.Link
 		accountProject.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().ID(accountProject.Id).AllCols().Update(accountProject)
+		err = db.Default().Model(&accountProject).Where("id = ?", accountProject.Id).Select("*").Updates(accountProject).Error
 		if err != nil {
 			return err
 		}

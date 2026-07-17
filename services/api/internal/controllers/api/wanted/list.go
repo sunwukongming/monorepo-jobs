@@ -23,7 +23,7 @@ func ListAction(c *gin.Context) {
 		//session := db.Default().Table(bolejiang.ProfService{}).Where("status = 1").OrderBy("time_update desc, id desc")
 		keyword := "%" + request.Keyword + "%"
 		if request.Keyword != "" {
-			dao.Where(query.ProfService.Name.Like(keyword)).Where(query.ProfService.Introduction.Like(keyword))
+			dao = dao.Where(query.ProfService.Name.Like(keyword)).Where(query.ProfService.Introduction.Like(keyword))
 			//session.Where("name like ? or introduction like ?", keyword, keyword)
 		}
 		count, err := dao.Count()

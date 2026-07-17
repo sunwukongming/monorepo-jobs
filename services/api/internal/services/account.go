@@ -10,7 +10,7 @@ import (
 
 func AccountGetByMobile(mobile string) (*bolejiang.Account, error) {
 	var account bolejiang.Account
-	ok, err := db.Default().Where("mobile = ?", mobile).Get(&account)
+	ok, err := db.Get(db.Default().Where("mobile = ?", mobile), &account)
 	if err != nil {
 		return nil, err
 	}
@@ -22,15 +22,15 @@ func AccountGetByMobile(mobile string) (*bolejiang.Account, error) {
 
 func AccountBindMobile(account bolejiang.Account, mobile string) error {
 	account.Mobile = mobile
-	n, err := db.Default().ID(account.Id).Cols("mobile").Update(account)
-	if err != nil {
-		return err
+	result := db.Default().Model(&account).Where("id = ?", account.Id).Select("mobile").Updates(account)
+	if result.Error != nil {
+		return result.Error
 	}
-	if n == 0 {
+	if result.RowsAffected == 0 {
 		return errors.New("手机号更新失败")
 	}
 	var accounts []bolejiang.Account
-	err = db.Default().Where("mobile = ? and id != ?", mobile, account.Id).Find(&accounts)
+	err := db.Default().Where("mobile = ? and id != ?", mobile, account.Id).Find(&accounts).Error
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func AccountBindMobile(account bolejiang.Account, mobile string) error {
 		accountIds = append(accountIds, item.Id)
 	}
 	if len(accountIds) > 0 {
-		_, err = db.Default().Table(bolejiang.Account{}).In("id", accountIds).Update(map[string]interface{}{"mobile": ""})
+		err = db.Default().Model(&bolejiang.Account{}).Where("id IN ?", accountIds).Updates(map[string]interface{}{"mobile": ""}).Error
 		if err != nil {
 			return err
 		}
@@ -48,9 +48,9 @@ func AccountBindMobile(account bolejiang.Account, mobile string) error {
 }
 
 func AccountUpdateRelevant(account bolejiang.Account) {
-	_, err := db.Default().Table(bolejiang.AccountApply{}).Where("account_id = ?", account.Id).Update(map[string]interface{}{
+	err := db.Default().Model(&bolejiang.AccountApply{}).Where("account_id = ?", account.Id).Updates(map[string]interface{}{
 		"current_state": account.CurrentState,
-	})
+	}).Error
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"action":  "account_relevant_update",
@@ -58,13 +58,13 @@ func AccountUpdateRelevant(account bolejiang.Account) {
 		})
 	}
 
-	_, err = db.Default().Exec(`update deliver as d set 
+	err = db.Default().Exec(`update deliver as d set
 	account_name = (select name from account as a where d.account_id = a.id),
 	account_mobile = (select mobile from account as a where d.account_id = a.id),
 	name = (select name from account as a where d.account_id = a.id),
 	mobile = (select mobile from account as a where d.account_id = a.id),
 	email = (select email from account as a where d.account_id = a.id)
-	where account_id = ? `, account.Id)
+	where account_id = ? `, account.Id).Error
 
 	if err != nil {
 		logrus.WithFields(logrus.Fields{

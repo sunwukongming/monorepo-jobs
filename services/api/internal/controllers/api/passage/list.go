@@ -6,7 +6,6 @@ import (
 	"app/internal/services"
 	"app/models/bolejiang"
 	"app/pkg/utils"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,54 +32,36 @@ func ListAction(c *gin.Context) {
 			return err
 		}
 		var passages []bolejiang.Passage
-		query := db.Default().Table(new(bolejiang.Passage)).Select("passage.*").
-			Join("LEFT", "passage_company", "passage.psg_company = passage_company.id").
-			Where("passage.type = 0 and passage.status = 0").OrderBy("passage.mtime desc, passage.id desc")
+		query := db.Default().Table("passage").Select("passage.*").
+			Joins("LEFT JOIN passage_company ON passage.psg_company = passage_company.id").
+			Where("passage.type = 0 and passage.status = 0").Order("passage.mtime desc, passage.id desc")
 		if request.Keyword != "" {
 			accountId := services.AuthGetAccountID(c)
 			var account bolejiang.Account
-			ok, err := db.Default().Where("id = ?", accountId).Get(&account)
+			ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 			if err != nil {
 				return err
 			}
 			if ok && account.IsAllies == 1 {
 
 			} else {
-				query.Where("passage_company.name != ?", request.Keyword)
+				query = query.Where("passage_company.name != ?", request.Keyword)
 			}
 		}
 
-		if request.SimilarPassageId != 0 {
-			var similarPassage bolejiang.Passage
-			ok, err := db.Default().Where("id = ?", similarPassage).Get(&similarPassage)
-			if err != nil {
-				return err
-			}
-			if ok {
-				query.Where("passage.industry_path like ?", similarPassage.IndustryPath+"%")
-				query.Where("passage.position_tag_path like ?", similarPassage.PositionTagPath+"%")
-			}
+		query, err := applySimilarFilter(query, request.SimilarPassageId)
+		if err != nil {
+			return err
 		}
 		if request.Keyword != "" {
-			query.Where("(passage.title like ? or passage.edit_content like ? or passage_company.name like ?)", "%"+request.Keyword+"%", "%"+request.Keyword+"%", "%"+request.Keyword+"%")
+			query = query.Where("(passage.title like ? or passage.edit_content like ? or passage_company.name like ?)", "%"+request.Keyword+"%", "%"+request.Keyword+"%", "%"+request.Keyword+"%")
 		}
-		if request.CityId != 0 {
-			query.Where("passage.city_id = ?", request.CityId)
-		}
-		if request.DistrictId != 0 {
-			query.Where("passage.district_id = ?", request.DistrictId)
-		}
-		if request.IndustryPath != "" {
-			query.Where("(passage.industry_path like ? or passage.industry_path = ?)", request.IndustryPath+"-%", request.IndustryPath)
-		}
-		if request.PositionTagPath != "" {
-			query.Where("(passage.position_tag_path like ? or passage.position_tag_path = ?)", request.PositionTagPath+"-%", request.PositionTagPath)
-		}
+		query = applyPassageGeoFilters(query, request.CityId, request.DistrictId, request.IndustryPath, request.PositionTagPath)
 		if request.IsAnonymous != "" {
-			query.Where("(passage.is_anonymous = ?)", request.IsAnonymous)
+			query = query.Where("(passage.is_anonymous = ?)", request.IsAnonymous)
 		}
 		if request.CompanyID != 0 {
-			query.Where("(passage.psg_company = ? and passage.is_anonymous = 0)", request.CompanyID)
+			query = query.Where("(passage.psg_company = ? and passage.is_anonymous = 0)", request.CompanyID)
 		}
 		if request.RootCompanyID != 0 {
 			childCompanies, err := mquery.PassageCompany.Where(mquery.PassageCompany.CompanyID.Eq(request.RootCompanyID)).Find()
@@ -91,13 +72,13 @@ func ListAction(c *gin.Context) {
 			for i := range childCompanies {
 				ids = append(ids, childCompanies[i].ID)
 			}
-			query.In("passage.psg_company", ids).Where("passage.is_anonymous = 0")
+			query = query.Where("passage.psg_company IN ?", ids).Where("passage.is_anonymous = 0")
 		}
 		if request.PageSize == 0 {
 			request.PageSize = 10
 		}
 		page = services.NewPage(request.Page, request.PageSize)
-		err := page.Execute(query, &passages)
+		err = page.Execute(query, &passages)
 		if err != nil {
 			return err
 		}
@@ -108,7 +89,6 @@ func ListAction(c *gin.Context) {
 		}
 
 		accountId := services.AuthGetAccountID(c)
-		fmt.Println("accountID:", accountId)
 		passageFulls, err := services.PassageListFullByIDs(passageIDs, uint32(utils.IntVal(accountId)))
 		if err != nil {
 			return err

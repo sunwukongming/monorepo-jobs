@@ -40,14 +40,14 @@ func UpdateApplyAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
 		if !ok {
 			return errors.New("用户不存在")
 		}
-		ok, err = db.Default().Where("id = ? and account_id = ?", request.Id, user.Id).Get(&accountApply)
+		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.Id, user.Id), &accountApply)
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,7 @@ func UpdateApplyAction(c *gin.Context) {
 		}
 
 		var applies []bolejiang.AccountApply
-		err = db.Default().Where("account_id = ? and id != ?", user.Id, accountApply.Id).Find(&applies)
+		err = db.Default().Where("account_id = ? and id != ?", user.Id, accountApply.Id).Find(&applies).Error
 		if err != nil {
 			return err
 		}
@@ -85,12 +85,12 @@ func UpdateApplyAction(c *gin.Context) {
 		accountApply.HelpRewardToC = request.HelpReward * 7 / 10
 		accountApply.IsHelpRewardVisible = request.IsHelpRewardVisible
 		accountApply.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Where("id = ?", accountApply.Id).AllCols().Update(accountApply)
+		err = db.Default().Model(&accountApply).Where("id = ?", accountApply.Id).Select("*").Updates(accountApply).Error
 		if err != nil {
 			return err
 		}
 		if accountApply.IsFirst == 1 {
-			db.Default().Table(bolejiang.AccountApply{}).Where("account_id = ? and id != ?", accountApply.AccountId, accountApply.Id).Update(map[string]interface{}{
+			db.Default().Model(&bolejiang.AccountApply{}).Where("account_id = ? and id != ?", accountApply.AccountId, accountApply.Id).Updates(map[string]interface{}{
 				"is_first": 0,
 			})
 		}

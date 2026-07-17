@@ -107,7 +107,7 @@ func RegisterApi(routerGroup *gin.RouterGroup) {
 	routerGroup.POST("apply/resumeAuth", apply.ResumeAuthAction)
 
 	for _, model := range []interface{}{bolejiang.Meeting{}, bolejiang.FinancingDemand{}, bolejiang.IndustryAssociation{}, bolejiang.IndustryInfo{}, bolejiang.InvestmentDemand{}, bolejiang.TopicQa{}, bolejiang.Cooperation{}} {
-		tablename := db.Default().TableName(model)
+		tablename := db.TableName(model)
 		apiname := utils.CamelCase(tablename)
 		routerGroup.POST("article/"+apiname+"s", article.GetArticlesAction(model))
 		routerGroup.POST("article/"+apiname+"Detail", article.GetArticleDetailAction(model))

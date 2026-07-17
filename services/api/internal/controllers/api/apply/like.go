@@ -24,7 +24,7 @@ func LikeAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 		var accountApply bolejiang.AccountApply
-		ok, err := db.Default().Where("id = ?", request.ID).Get(&accountApply)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &accountApply)
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ func LikeAction(c *gin.Context) {
 			return errors.New("职位不存在")
 		}
 		var applyLike bolejiang.AccountApplyLike
-		ok, err = db.Default().Where("account_id = ? and account_apply_id = ?", accountId, request.ID).Get(&applyLike)
+		ok, err = db.Get(db.Default().Where("account_id = ? and account_apply_id = ?", accountId, request.ID), &applyLike)
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,7 @@ func LikeAction(c *gin.Context) {
 		}
 		applyLike.AccountId = utils.IntVal(accountId)
 		applyLike.AccountApplyId = request.ID
-		_, err = db.Default().Insert(&applyLike)
+		err = db.Default().Create(&applyLike).Error
 		if err != nil {
 			return err
 		}

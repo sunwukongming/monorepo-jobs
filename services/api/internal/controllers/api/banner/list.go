@@ -12,7 +12,7 @@ func ListAction(c *gin.Context) {
 	data := gin.H{}
 	err := func() error {
 		banners := make([]bolejiang.Banner, 0)
-		err := db.Default().Find(&banners)
+		err := db.Default().Find(&banners).Error
 		if err != nil {
 			return err
 		}

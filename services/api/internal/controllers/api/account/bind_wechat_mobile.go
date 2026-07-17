@@ -51,7 +51,7 @@ func BindWechatMobileAction(c *gin.Context) {
 			"mobile": mobile,
 		}).Info()
 		var account bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&account)
+		ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 		if err != nil {
 			return err
 		}

@@ -14,7 +14,8 @@ func DetailAction(c *gin.Context) {
 		ID string `json:"id"`
 	}
 	var request Request
-	var deliverPassage DeliverPassage
+	var deliver bolejiang.Deliver
+	var passage bolejiang.Passage
 	err := func() error {
 		if err := c.ShouldBindJSON(&request); err != nil {
 			return err
@@ -24,24 +25,25 @@ func DetailAction(c *gin.Context) {
 		if accountId == "" {
 			return errors.New("用户不存在")
 		}
-		var currentAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		// Common 中间件已校验并写入 context，直接复用避免重复查询
+		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
 			return err
 		}
-		if !ok {
-			return errors.New("账号不存在")
-		}
+		currentAccount := *accountPtr
 
-		ok, err = db.Default().Table(bolejiang.Deliver{}).
-			Join("LEFT", "passage", "deliver.passage_id = passage.id").
-			Join("LEFT", "account", "deliver.account_id = account.id").
-			Where("deliver.id = ? and deliver.recommend_account_id = ? and deliver.is_real = 1", request.ID, currentAccount.Id).Get(&deliverPassage)
+		// 原 xorm `extends` 多表嵌入扫描 GORM 不支持，改为先取 deliver 再按 passage_id 取职位。
+		ok, err := db.Get(db.Default().
+			Where("id = ? and recommend_account_id = ? and is_real = 1", request.ID, currentAccount.Id), &deliver)
 		if err != nil {
 			return err
 		}
 		if !ok {
 			return errors.New("该投递不存在")
+		}
+		_, err = db.Get(db.Default().Where("id = ?", deliver.PassageId), &passage)
+		if err != nil {
+			return err
 		}
 		return nil
 	}()
@@ -50,7 +52,7 @@ func DetailAction(c *gin.Context) {
 		return
 	}
 	services.ResponseSuccess(c, gin.H{
-		"deliver": deliverPassage.Deliver,
-		"passage": deliverPassage.Passage,
+		"deliver": deliver,
+		"passage": passage,
 	})
 }

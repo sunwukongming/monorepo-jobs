@@ -49,20 +49,18 @@ func CreateManualAction(c *gin.Context) {
 		if accountId == "" {
 			return errors.New("用户不存在")
 		}
-		var currentAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", accountId).Get(&currentAccount)
+		// Common 中间件已校验并写入 context，直接复用避免重复查询
+		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
 			return err
 		}
-		if !ok {
-			return errors.New("账号不存在")
-		}
+		currentAccount := *accountPtr
 		if currentAccount.Mobile == request.Mobile {
 			return errors.New("无法推荐自己")
 		}
 
 		var passage bolejiang.Passage
-		ok, err = db.Default().Where("id = ?", request.PassageId).Get(&passage)
+		ok, err := db.Get(db.Default().Where("id = ?", request.PassageId), &passage)
 		if err != nil {
 			return err
 		}
@@ -72,7 +70,7 @@ func CreateManualAction(c *gin.Context) {
 
 		// 查询候选人是否应聘该职位
 		deliver = bolejiang.Deliver{}
-		ok, err = db.Default().Where("passage_id = ? and mobile = ? and is_real = 1", request.PassageId, request.Mobile).Get(&deliver)
+		ok, err = db.Get(db.Default().Where("passage_id = ? and mobile = ? and is_real = 1", request.PassageId, request.Mobile), &deliver)
 		if err != nil {
 			return err
 		}
@@ -90,7 +88,7 @@ func CreateManualAction(c *gin.Context) {
 		deliver.RecommendComment = request.RecommendComment
 		var passageRecommend bolejiang.PassageRecommend
 		if request.PassageRecommendId != 0 {
-			ok, err := db.Default().Where("id = ?", request.PassageRecommendId).Get(&passageRecommend)
+			ok, err := db.Get(db.Default().Where("id = ?", request.PassageRecommendId), &passageRecommend)
 			if err != nil {
 				return err
 			}
@@ -113,7 +111,7 @@ func CreateManualAction(c *gin.Context) {
 		deliver.DeliverTime = time.Now().Unix()
 		deliver.CreatedTime = time.Now().Unix()
 		deliver.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Insert(&deliver)
+		err = db.Default().Create(&deliver).Error
 		if err != nil {
 			return err
 		}

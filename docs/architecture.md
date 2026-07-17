@@ -13,6 +13,11 @@
 - 小程序 / 后台 → `services/api`（HTTP）
 - `contracts/openapi` → 生成 Go / TS 客户端（`make gen-api`）
 
+## 技术栈
+
+- 前端 JS/TS：npm workspaces（`apps/*`、`packages/*`）
+- 后端 `services/api`：Go 1.26 + Gin + **GORM**（`gorm.io/gorm`）。数据访问统一走 `db.Default()`（`*gorm.DB`），已移除历史 xorm 依赖。
+
 ## 本地端口
 
 | 服务 | 默认地址 |

@@ -23,7 +23,7 @@ func UnlikeAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 		var apply bolejiang.AccountApply
-		ok, err := db.Default().Where("id = ?", request.ID).Get(&apply)
+		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &apply)
 		if err != nil {
 			return err
 		}
@@ -31,12 +31,12 @@ func UnlikeAction(c *gin.Context) {
 			return errors.New("职位不存在")
 		}
 		var applyLike bolejiang.AccountApplyLike
-		ok, err = db.Default().Where("account_id = ? and account_apply_id = ?", accountId, request.ID).Get(&applyLike)
+		ok, err = db.Get(db.Default().Where("account_id = ? and account_apply_id = ?", accountId, request.ID), &applyLike)
 		if err != nil {
 			return err
 		}
 		if ok {
-			_, err := db.Default().Table(new(bolejiang.AccountApplyLike)).Where("id = ?", applyLike.Id).Delete()
+			err := db.Default().Where("id = ?", applyLike.Id).Delete(new(bolejiang.AccountApplyLike)).Error
 			if err != nil {
 				return err
 			}

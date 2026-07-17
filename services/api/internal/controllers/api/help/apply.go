@@ -36,7 +36,7 @@ func ApplyAction(c *gin.Context) {
 		}
 		currentAccountId := services.AuthGetAccountID(c)
 		var helperAccount bolejiang.Account
-		ok, err := db.Default().Where("id = ?", currentAccountId).Get(&helperAccount)
+		ok, err := db.Get(db.Default().Where("id = ?", currentAccountId), &helperAccount)
 		if err != nil {
 			return err
 		}
@@ -45,7 +45,7 @@ func ApplyAction(c *gin.Context) {
 		}
 
 		var accountApply bolejiang.AccountApply
-		ok, err = db.Default().Where("id = ?", request.AccountApplyID).Get(&accountApply)
+		ok, err = db.Get(db.Default().Where("id = ?", request.AccountApplyID), &accountApply)
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func ApplyAction(c *gin.Context) {
 		*/
 
 		var accountHelp bolejiang.AccountHelp
-		ok, err = db.Default().Where("account_apply_id = ? and helper_account_id = ?", request.AccountApplyID, currentAccountId).Get(&accountHelp)
+		ok, err = db.Get(db.Default().Where("account_apply_id = ? and helper_account_id = ?", request.AccountApplyID, currentAccountId), &accountHelp)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func ApplyAction(c *gin.Context) {
 			accountHelp.Position = request.Position
 			accountHelp.HelpPlan = request.HelpPlan
 			accountHelp.UpdatedTime = time.Now().Unix()
-			_, err = db.Default().ID(accountHelp.Id).Cols("company", "position", "help_plan", "updated_time").Update(accountHelp)
+			err = db.Default().Model(&accountHelp).Where("id = ?", accountHelp.Id).Select("company", "position", "help_plan", "updated_time").Updates(accountHelp).Error
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,7 @@ func ApplyAction(c *gin.Context) {
 			accountHelp.HelpPlan = request.HelpPlan
 			accountHelp.CreatedTime = time.Now().Unix()
 			accountHelp.UpdatedTime = time.Now().Unix()
-			_, err := db.Default().Insert(&accountHelp)
+			err := db.Default().Create(&accountHelp).Error
 			if err != nil {
 				return err
 			}

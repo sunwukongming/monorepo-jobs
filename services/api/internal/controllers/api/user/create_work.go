@@ -29,7 +29,7 @@ func CreateWorkAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -47,7 +47,7 @@ func CreateWorkAction(c *gin.Context) {
 		accountWork.Skills = request.Skills
 		accountWork.CreatedTime = time.Now().Unix()
 		accountWork.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().Insert(&accountWork)
+		err = db.Default().Create(&accountWork).Error
 		if err != nil {
 			return err
 		}

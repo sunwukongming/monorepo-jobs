@@ -30,7 +30,7 @@ func UpdateWorkAction(c *gin.Context) {
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
-		ok, err := db.Default().Where("id = ?", id).Get(&user)
+		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
 			return err
 		}
@@ -38,7 +38,7 @@ func UpdateWorkAction(c *gin.Context) {
 			return errors.New("用户不存在")
 		}
 
-		ok, err = db.Default().Where("id = ? and account_id = ?", request.ID, user.Id).Get(&accountWork)
+		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.ID, user.Id), &accountWork)
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,7 @@ func UpdateWorkAction(c *gin.Context) {
 		accountWork.Performance = request.Performance
 		accountWork.Skills = request.Skills
 		accountWork.UpdatedTime = time.Now().Unix()
-		_, err = db.Default().ID(accountWork.Id).Update(accountWork)
+		err = db.Default().Model(&accountWork).Where("id = ?", accountWork.Id).Updates(accountWork).Error
 		if err != nil {
 			return err
 		}

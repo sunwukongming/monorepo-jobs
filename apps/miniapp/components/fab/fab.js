@@ -55,12 +55,10 @@ Component({
 
     ready() {
 		const that = this
-		wx.getSystemInfo({
-			success (res) {
-				that.setData({
-					y: `${res.windowHeight - 180}px`,
-				})
-			}
+		const { getSystemInfoCompat } = require('../../utils/system')
+		const res = getSystemInfoCompat()
+		that.setData({
+			y: `${res.windowHeight - 180}px`,
 		})
 	},
 

@@ -1,3 +1,8 @@
 {
-    "usingComponents": {}
+    "usingComponents": {
+        "action-sheet": "/components/vant/action-sheet/index",
+        "navbar": "/components/navbar/index",
+        "van-field": "/components/vant/field/index",
+        "van-action-sheet": "/components/vant/action-sheet/index"
+    }
 }

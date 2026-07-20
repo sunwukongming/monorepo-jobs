@@ -1,3 +1,6 @@
 {
-    "usingComponents": {}
+    "usingComponents": {
+        "divider": "/components/vant/divider/index",
+        "navbar": "/components/navbar/index"
+    }
 }

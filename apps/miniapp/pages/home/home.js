@@ -209,14 +209,25 @@ Page({
     },
 
     onChangeTab(e) {
-        const { index } = e.detail 
+        const { index } = e.detail
+        // 粘性 tabs 的 onScroll 可能反复触发同 index 的 change，忽略避免重复请求
+        if (index === this.data.activeTab) {
+            return
+        }
         this.setData({
             activeTab: index,
         })
         wx.pageScrollTo({
             scrollTop: this.data.scrollTop + 1,
         })
-        this.getDataList()
+        // 目标 tab 已有数据则不重拉，否则 concat 会产生重复 wx:key
+        if (index == 1) {
+            if (this.data.companyItems.length === 0 && this.data.companyHasMore) {
+                this.getCompanyList()
+            }
+        } else if (this.data.items.length === 0 && this.data.hasMore) {
+            this.getList()
+        }
     },
 
     /**
@@ -388,8 +399,15 @@ Page({
                     }
                     item.tags.push('自荐礼包')
                 }
+                const existIds = {}
+                for (const row of that.data.items) {
+                    existIds[row.id] = true
+                }
+                const merged = that.data.items.concat(
+                    items.filter((row) => !existIds[row.id])
+                )
                 that.setData({
-                    items: that.data.items.concat(items),
+                    items: merged,
                     page,
                 })
                 wx.hideLoading({
@@ -442,8 +460,15 @@ Page({
                     item.icon = 'https://admin.bolejiang.com' + item.icon
                     item.tags = item.tags.split(',')
                 }
+                const existIds = {}
+                for (const row of that.data.companyItems) {
+                    existIds[row.id] = true
+                }
+                const merged = that.data.companyItems.concat(
+                    items.filter((row) => !existIds[row.id])
+                )
                 that.setData({
-                    companyItems: that.data.companyItems.concat(items),
+                    companyItems: merged,
                     companyPage: page,
                 })
                 wx.hideLoading({

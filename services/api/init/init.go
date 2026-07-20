@@ -9,6 +9,7 @@ import (
 	"flag"
 
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -77,28 +78,30 @@ func Bootstrap(con *config.Config) {
 	gin.SetMode(con.Mode)
 	if con.Mode == "debug" {
 		logrus.SetLevel(logrus.DebugLevel)
-		logrus.SetOutput(os.Stdout)
 	}
 	err := os.Setenv("TZ", con.TimeZone)
 	if err != nil {
 		logrus.Fatal("环境变量无法设置")
 	}
-	dir := FileDir()
-	logDir := path.Join(dir, "logs", config.Get().Name)
-	func() {
-		_, err := os.Stat(logDir)
-		if err != nil {
-			if !os.IsExist(err) { //文件不存在
-				os.Mkdir(logDir, 0777)
-			}
-		}
-	}()
-	logPath := path.Join(logDir, fmt.Sprintf("api-%s.log", time.Now().Format("20060102")))
-	file, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
+	// go run 时可执行文件在临时目录，日志应落在工作目录（通常为 services/api）
+	dir, err := os.Getwd()
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	logrus.SetOutput(file)
+	logDir := path.Join(dir, "logs", config.Get().Name)
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		logrus.Fatalf("创建日志目录失败 %s: %v", logDir, err)
+	}
+	logPath := path.Join(logDir, fmt.Sprintf("api-%s.log", time.Now().Format("20060102")))
+	file, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o644)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	if con.Mode == "debug" {
+		logrus.SetOutput(io.MultiWriter(os.Stdout, file))
+	} else {
+		logrus.SetOutput(file)
+	}
 	go func() {
 		for {
 			now := time.Now()
@@ -109,11 +112,15 @@ func Bootstrap(con *config.Config) {
 			<-t.C
 			logPath := path.Join(logDir, fmt.Sprintf("api-%s.log", time.Now().Format("20060102")))
 			lastFile := file
-			file, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
+			file, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o644)
 			if err != nil {
 				logrus.Fatal(err)
 			}
-			logrus.SetOutput(file)
+			if con.Mode == "debug" {
+				logrus.SetOutput(io.MultiWriter(os.Stdout, file))
+			} else {
+				logrus.SetOutput(file)
+			}
 			lastFile.Close()
 		}
 	}()

@@ -1,4 +1,15 @@
 {
     "enablePullDownRefresh": true,
-    "usingComponents": {}
+    "usingComponents": {
+        "divider": "/components/vant/divider/index",
+        "navbar": "/components/navbar/index",
+        "van-picker": "/components/vant/picker/index",
+        "popup": "/components/vant/popup/index",
+        "van-tab": "/components/vant/tab/index",
+        "van-tabs": "/components/vant/tabs/index",
+        "van-icon": "/components/vant/icon/index",
+        "van-image": "/components/vant/image/index",
+        "van-sticky": "/components/vant/sticky/index",
+        "van-action-sheet": "/components/vant/action-sheet/index"
+    }
 }

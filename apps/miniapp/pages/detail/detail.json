@@ -1,5 +1,16 @@
 {
     "usingComponents": {
+        "action-sheet": "/components/vant/action-sheet/index",
+        "dialog": "/components/vant/dialog/index",
+        "navbar": "/components/navbar/index",
+        "van-icon": "/components/vant/icon/index",
+        "van-image": "/components/vant/image/index",
+        "van-field": "/components/vant/field/index",
+        "van-notice-bar": "/components/vant/notice-bar/index",
+        "van-action-sheet": "/components/vant/action-sheet/index",
+        "van-button": "/components/vant/button/index",
+        "van-circle": "/components/vant/circle/index",
+        "van-share-sheet": "/components/vant/share-sheet/index",
         "modal": "/components/modal/modal"
     }
 }

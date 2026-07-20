@@ -570,7 +570,8 @@ Component({
     initScreenK() {
       if (!(getApp() && getApp().systemInfo && getApp().systemInfo.screenWidth)) {
         try {
-          getApp().systemInfo = wx.getSystemInfoSync();
+          const { getSystemInfoCompat } = require('../../utils/system');
+          getApp().systemInfo = getSystemInfoCompat();
         } catch (e) {
           console.error(`Painter get system info failed, ${JSON.stringify(e)}`);
           return;

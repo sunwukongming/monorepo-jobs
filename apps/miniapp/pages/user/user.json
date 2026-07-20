@@ -1,5 +1,13 @@
 {
-  "usingComponents": {
-    "modal": "/components/modal/modal"
-  }
+    "usingComponents": {
+        "divider": "/components/vant/divider/index",
+        "navbar": "/components/navbar/index",
+        "van-picker": "/components/vant/picker/index",
+        "popup": "/components/vant/popup/index",
+        "van-icon": "/components/vant/icon/index",
+        "van-image": "/components/vant/image/index",
+        "van-action-sheet": "/components/vant/action-sheet/index",
+        "van-circle": "/components/vant/circle/index",
+        "modal": "/components/modal/modal"
+    }
 }

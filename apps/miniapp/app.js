@@ -1,16 +1,14 @@
 const { request } = require('./utils/request.js')
+const { getSystemInfoCompat, isHarmonyOS } = require('./utils/system.js')
 App({
     onLaunch() {
         let that = this
 
-        // 计算自定义的标题栏高度
-        // getSystemInfoSync 已废弃，改用 getWindowInfo(尺寸) + getDeviceInfo(platform/system)，旧基础库回退
-        let systemInfo
-        if (wx.getWindowInfo && wx.getDeviceInfo) {
-            systemInfo = Object.assign({}, wx.getWindowInfo(), wx.getDeviceInfo())
-        } else {
-            systemInfo = wx.getSystemInfoSync()
-        }
+        // 计算自定义的标题栏高度（含 HarmonyOS / ohos 平台判断）
+        let systemInfo = getSystemInfoCompat()
+        that.systemInfo = systemInfo
+        that.globalData.platform = systemInfo.platform || ''
+        that.globalData.isHarmonyOS = isHarmonyOS(systemInfo.platform)
         let rect = null
         try {
             rect = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null
@@ -24,11 +22,12 @@ App({
         } catch (error) {
             let gap = '' //胶囊按钮上下间距 使导航内容居中
             let width = 96 //胶囊的宽度，android大部分96，ios为88
-            if (systemInfo.platform === 'android') {
+            if (systemInfo.platform === 'android' || isHarmonyOS(systemInfo.platform)) {
+                // HarmonyOS 手机端按 Android 间距处理更稳妥
                 gap = 8
                 width = 96
             } else if (systemInfo.platform === 'devtools') {
-                if (systemInfo.system.includes('iOS')) {
+                if ((systemInfo.system || '').includes('iOS')) {
                     gap = 5.5 //开发工具中ios手机
                 } else {
                     gap = 7.5 //开发工具中android和其他手机
@@ -115,5 +114,7 @@ App({
         openid: null,
         token: null,
         discoverMenu: 1,
+        platform: '',
+        isHarmonyOS: false,
     }
 })

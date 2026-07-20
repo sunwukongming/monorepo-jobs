@@ -1,3 +1,8 @@
 {
-    "usingComponents": {}
+    "usingComponents": {
+        "divider": "/components/vant/divider/index",
+        "navbar": "/components/navbar/index",
+        "van-icon": "/components/vant/icon/index",
+        "fab": "/components/fab/fab"
+    }
 }

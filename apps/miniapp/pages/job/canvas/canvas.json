@@ -1,5 +1,6 @@
 {
     "usingComponents": {
+        "navbar": "/components/navbar/index",
         "painter": "/components/painter/painter"
     }
 }

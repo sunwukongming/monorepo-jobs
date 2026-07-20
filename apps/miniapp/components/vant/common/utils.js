@@ -17,7 +17,13 @@ export function nextTick(cb) {
 let systemInfo;
 export function getSystemInfoSync() {
     if (systemInfo == null) {
-        systemInfo = wx.getSystemInfoSync();
+        const appBase =
+            typeof wx.getAppBaseInfo === 'function' ? wx.getAppBaseInfo() : {};
+        const device =
+            typeof wx.getDeviceInfo === 'function' ? wx.getDeviceInfo() : {};
+        const windowInfo =
+            typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
+        systemInfo = Object.assign({}, appBase, device, windowInfo);
     }
     return systemInfo;
 }

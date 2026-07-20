@@ -1,3 +1,10 @@
 {
-    "usingComponents": {}
+    "usingComponents": {
+        "van-checkbox": "/components/vant/checkbox/index",
+        "van-checkbox-group": "/components/vant/checkbox-group/index",
+        "navbar": "/components/navbar/index",
+        "van-picker": "/components/vant/picker/index",
+        "popup": "/components/vant/popup/index",
+        "van-icon": "/components/vant/icon/index"
+    }
 }

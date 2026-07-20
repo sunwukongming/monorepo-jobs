@@ -1,4 +1,9 @@
 {
     "enablePullDownRefresh": true,
-    "usingComponents": {}
+    "usingComponents": {
+        "navbar": "/components/navbar/index",
+        "van-icon": "/components/vant/icon/index",
+        "van-image": "/components/vant/image/index",
+        "van-empty": "/components/vant/empty/index"
+    }
 }

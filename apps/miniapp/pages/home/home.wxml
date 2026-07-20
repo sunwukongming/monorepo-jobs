@@ -121,7 +121,8 @@
                                 <view class="item-tag" 
                                     wx:for="{{item.tags}}" 
                                     wx:for-item="tag"
-                                    wx:key="tag"
+                                    wx:for-index="tagIndex"
+                                    wx:key="tagIndex"
                                 >{{tag}}</view>
                             </view>
                             <view class="item-desc">{{item.liangdian}}</view>
@@ -229,7 +230,8 @@
                             <view class="item-tags">
                                 <view class="item-tag" 
                                     wx:for="{{item.tags}}" wx:for-item="tag"
-                                    wx:key="tag"
+                                    wx:for-index="tagIndex"
+                                    wx:key="tagIndex"
                                 >{{tag}}</view>
                             </view>
                             <view class="item-footer">

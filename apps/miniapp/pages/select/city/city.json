@@ -1,3 +1,6 @@
 {
-    "usingComponents": {}
+    "usingComponents": {
+        "navbar": "/components/navbar/index",
+        "tree-select": "/components/vant/tree-select/index"
+    }
 }

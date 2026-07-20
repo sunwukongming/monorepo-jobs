@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"app/data"
 	"app/internal/testutil"
+	"app/models/bolejiang"
 
 	"github.com/DATA-DOG/go-sqlmock"
 )
@@ -52,6 +55,50 @@ func TestSmoke_BannerList(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assertEnvelope(t, w, 0)
+}
+
+// 成功路径：banner/list（已转 services.Handle）返回真实行数据，验证 ③ 转换后
+// 响应 data 内容正确（而非只是外壳合法/空数据）。
+func TestBannerList_ReturnsRows(t *testing.T) {
+	r, mock := testutil.Setup(t)
+	mock.ExpectQuery("banner").WillReturnRows(
+		sqlmock.NewRows([]string{"id", "url", "type", "jump_url", "sort"}).
+			AddRow(1, "https://cdn.example.com/a.png", "home", "", 0),
+	)
+	req := httptest.NewRequest(http.MethodGet, "/api/banner/list", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	body := assertEnvelope(t, w, 0)
+	dataObj, _ := body["data"].(map[string]interface{})
+	list, _ := dataObj["list"].([]interface{})
+	if len(list) != 1 {
+		t.Fatalf("data.list len = %d, want 1; body=%s", len(list), w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "https://cdn.example.com/a.png") {
+		t.Errorf("响应未包含 banner url; body=%s", w.Body.String())
+	}
+}
+
+// 成功路径：dictionary/cities 返回内存中的 Composed 城市树，验证内容透传到响应。
+func TestDictionaryCities_ReturnsComposed(t *testing.T) {
+	orig := data.ComposedCities
+	defer func() { data.ComposedCities = orig }()
+	data.ComposedCities = []bolejiang.ComposedCity{
+		{DataCity: bolejiang.DataCity{Id: 1, Name: "北京"}, Children: []bolejiang.DataDistrict{}},
+	}
+	r, _ := testutil.Setup(t)
+	req := httptest.NewRequest(http.MethodGet, "/api/dictionary/cities", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	body := assertEnvelope(t, w, 0)
+	dataObj, _ := body["data"].(map[string]interface{})
+	list, _ := dataObj["list"].([]interface{})
+	if len(list) != 1 {
+		t.Fatalf("data.list len = %d, want 1; body=%s", len(list), w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "北京") {
+		t.Errorf("响应未包含城市名; body=%s", w.Body.String())
+	}
 }
 
 // 核心免鉴权、无外部网络端点的响应外壳回归网：

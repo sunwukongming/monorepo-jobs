@@ -11,54 +11,54 @@ import (
 )
 
 func UpdateApplyAction(c *gin.Context) {
-	type Request struct {
-		Id                  int    `json:"id"`
-		IsPublic            int    `json:"isPublic"`
-		IsFirst             int    `json:"isFirst"`
-		CurrentCompany      string `json:"currentCompany"`
-		CurrentPositionTag  string `json:"currentPositionTag"`
-		CurrentPosition     string `json:"currentPosition"`
-		CurrentIndustry     string `json:"currentIndustry"`
-		CurrentCity         string `json:"currentCity"`
-		DestCity            string `json:"destCity"`
-		DestPositionTag     string `json:"destPositionTag"`
-		DestPosition        string `json:"destPosition"`
-		DestCompany         string `json:"destCompany"`
-		DestIndustry        string `json:"destIndustry"`
-		DestSalary          string `json:"destSalary"`
-		Education           string `json:"education"`
-		University          string `json:"university"`
-		Description         string `json:"description"`
-		HelpReward          int    `json:"helpReward"`
-		IsHelpRewardVisible int    `json:"isHelpRewardVisible"`
-	}
-	var request Request
-	var accountApply bolejiang.AccountApply
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		type Request struct {
+			Id                  int    `json:"id"`
+			IsPublic            int    `json:"isPublic"`
+			IsFirst             int    `json:"isFirst"`
+			CurrentCompany      string `json:"currentCompany"`
+			CurrentPositionTag  string `json:"currentPositionTag"`
+			CurrentPosition     string `json:"currentPosition"`
+			CurrentIndustry     string `json:"currentIndustry"`
+			CurrentCity         string `json:"currentCity"`
+			DestCity            string `json:"destCity"`
+			DestPositionTag     string `json:"destPositionTag"`
+			DestPosition        string `json:"destPosition"`
+			DestCompany         string `json:"destCompany"`
+			DestIndustry        string `json:"destIndustry"`
+			DestSalary          string `json:"destSalary"`
+			Education           string `json:"education"`
+			University          string `json:"university"`
+			Description         string `json:"description"`
+			HelpReward          int    `json:"helpReward"`
+			IsHelpRewardVisible int    `json:"isHelpRewardVisible"`
+		}
+		var request Request
+		var accountApply bolejiang.AccountApply
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
 		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.Id, user.Id), &accountApply)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("求职目标不存在")
+			return nil, errors.New("求职目标不存在")
 		}
 
 		var applies []bolejiang.AccountApply
 		err = db.Default().Where("account_id = ? and id != ?", user.Id, accountApply.Id).Find(&applies).Error
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		accountApply.IsPublic = request.IsPublic
@@ -87,18 +87,13 @@ func UpdateApplyAction(c *gin.Context) {
 		accountApply.UpdatedTime = time.Now().Unix()
 		err = db.Default().Model(&accountApply).Where("id = ?", accountApply.Id).Select("*").Updates(accountApply).Error
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if accountApply.IsFirst == 1 {
 			db.Default().Model(&bolejiang.AccountApply{}).Where("account_id = ? and id != ?", accountApply.AccountId, accountApply.Id).Updates(map[string]interface{}{
 				"is_first": 0,
 			})
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, accountApply)
+		return accountApply, nil
+	})
 }

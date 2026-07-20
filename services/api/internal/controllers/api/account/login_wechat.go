@@ -18,11 +18,11 @@ type LoginWechatRequest struct {
 }
 
 func LoginWechatAction(c *gin.Context) {
-	var request LoginWechatRequest
-	data := gin.H{}
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request LoginWechatRequest
+		data := gin.H{}
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		client := resty.New()
 		resp, err := client.R().SetQueryParams(map[string]string{
@@ -32,20 +32,20 @@ func LoginWechatAction(c *gin.Context) {
 			"grant_type": "authorization_code",
 		}).Get("https://api.weixin.qq.com/sns/jscode2session")
 		if err != nil {
-			return err
+			return nil, err
 		}
 		body := resp.Body()
 		errcode := jsoniter.Get(body, "errcode").ToInt()
 		if errcode != 0 {
 			errmsg := jsoniter.Get(body, "errmsg").ToString()
-			return errors.New(errmsg)
+			return nil, errors.New(errmsg)
 		}
 		openId := jsoniter.Get(body, "openid").ToString()
 		unionId := jsoniter.Get(body, "unionid").ToString()
 		var account bolejiang.Account
 		ok, err := db.Get(db.Default().Where("unionid = ?", unionId), &account)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
 			account.Openid = openId
@@ -54,18 +54,13 @@ func LoginWechatAction(c *gin.Context) {
 			account.UpdatedTime = time.Now().Unix()
 			err := db.Default().Create(&account).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 		data["token"], _ = utils.GetToken(account.Id)
 		data["openid"] = openId
 		data["unionid"] = unionId
 		data["sessionKey"] = jsoniter.Get(body, "session_key")
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, data)
+		return data, nil
+	})
 }

@@ -17,15 +17,15 @@ type BindWechatMobileRequest struct {
 }
 
 func BindWechatMobileAction(c *gin.Context) {
-	var request BindWechatMobileRequest
-	data := gin.H{}
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request BindWechatMobileRequest
+		data := gin.H{}
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		accountId := services.AuthGetAccountID(c)
 		if accountId == "" {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 		bs, _ := jsoniter.MarshalToString(map[string]string{
 			"code": request.Code,
@@ -36,13 +36,13 @@ func BindWechatMobileAction(c *gin.Context) {
 			SetQueryParam("access_token", services.WechatAccessToken()).
 			SetHeader("Content-Type", "application/json").Post("https://api.weixin.qq.com/wxa/business/getuserphonenumber")
 		if err != nil {
-			return err
+			return nil, err
 		}
 		body := resp.Body()
 		errcode := jsoniter.Get(body, "errcode").ToInt()
 		if errcode != 0 {
 			errmsg := jsoniter.Get(body, "errmsg").ToString()
-			return errors.New(errmsg)
+			return nil, errors.New(errmsg)
 		}
 		mobile := jsoniter.Get(body, "phone_info", "purePhoneNumber").ToString()
 		logrus.WithFields(logrus.Fields{
@@ -53,22 +53,17 @@ func BindWechatMobileAction(c *gin.Context) {
 		var account bolejiang.Account
 		ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 		err = services.AccountBindMobile(account, mobile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		services.AccountUpdateRelevant(account)
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, data)
+		return data, nil
+	})
 }

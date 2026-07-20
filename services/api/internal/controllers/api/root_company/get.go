@@ -12,25 +12,20 @@ type GetRequest struct {
 }
 
 func GetAction(c *gin.Context) {
-	var request GetRequest
-	var companyFull *services.RootCompanyFull
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request GetRequest
+		var companyFull *services.RootCompanyFull
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		rootCompany, err := query.CompanyInfo.Where(query.CompanyInfo.ID.Eq(request.ID)).First()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		companyFull, err = services.RootCompanyFullGet(rootCompany)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, companyFull)
+		return companyFull, nil
+	})
 }

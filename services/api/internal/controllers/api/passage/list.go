@@ -25,11 +25,11 @@ type ListRequest struct {
 }
 
 func ListAction(c *gin.Context) {
-	var request ListRequest
-	var page *services.Page
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request ListRequest
+		var page *services.Page
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		var passages []bolejiang.Passage
 		query := db.Default().Table("passage").Select("passage.*").
@@ -40,7 +40,7 @@ func ListAction(c *gin.Context) {
 			var account bolejiang.Account
 			ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if ok && account.IsAllies == 1 {
 
@@ -51,7 +51,7 @@ func ListAction(c *gin.Context) {
 
 		query, err := applySimilarFilter(query, request.SimilarPassageId)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if request.Keyword != "" {
 			query = query.Where("(passage.title like ? or passage.edit_content like ? or passage_company.name like ?)", "%"+request.Keyword+"%", "%"+request.Keyword+"%", "%"+request.Keyword+"%")
@@ -66,7 +66,7 @@ func ListAction(c *gin.Context) {
 		if request.RootCompanyID != 0 {
 			childCompanies, err := mquery.PassageCompany.Where(mquery.PassageCompany.CompanyID.Eq(request.RootCompanyID)).Find()
 			if err != nil {
-				return err
+				return nil, err
 			}
 			ids := make([]uint32, 0, len(childCompanies))
 			for i := range childCompanies {
@@ -80,7 +80,7 @@ func ListAction(c *gin.Context) {
 		page = services.NewPage(request.Page, request.PageSize)
 		err = page.Execute(query, &passages)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		passageIDs := make([]uint32, 0, len(passages))
@@ -91,45 +91,10 @@ func ListAction(c *gin.Context) {
 		accountId := services.AuthGetAccountID(c)
 		passageFulls, err := services.PassageListFullByIDs(passageIDs, uint32(utils.IntVal(accountId)))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		page.List = passageFulls
-
-		// psgCompanies := make([]int, 0)
-		// for _, passage := range passages {
-		// 	psgCompanies = append(psgCompanies, passage.PsgCompany)
-		// }
-		// passageCompanies := make([]bolejiang.PassageCompany, 0)
-		// err = db.Default().In("id", psgCompanies).Find(&passageCompanies)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// rows := []interface{}{}
-		// for _, passage := range passages {
-		// 	item := services.PassageResponse{
-		// 		Passage:         passage,
-		// 		CityName:        data.CityMap[passage.CityId].Name,
-		// 		DistrictName:    data.DistrictMap[passage.DistrictId].Name,
-		// 		IndustryName:    data.IndustryMap[passage.IndustryPath].Name,
-		// 		PositionTagName: data.PositionTagMap[passage.PositionTagPath].Name,
-		// 	}
-		// 	for _, passageCompany := range passageCompanies {
-		// 		if item.PsgCompany == passageCompany.Id {
-		// 			item.Address = passageCompany.Address
-		// 			item.OutName = passageCompany.OutName
-		// 			item.CompanyRemark = passageCompany.Remark
-		// 		}
-		// 	}
-		// 	rows = append(rows, item)
-		// }
-		// page.List = rows
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

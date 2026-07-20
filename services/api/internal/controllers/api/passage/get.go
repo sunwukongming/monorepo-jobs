@@ -23,26 +23,26 @@ func GetAction(c *gin.Context) {
 		RecommendAccount interface{} `json:"recommendAccount"`
 		SelfAccount      interface{} `json:"selfAccount"`
 	}
-	var request GetRequest
-	var response Response
-	var passageRecommend bolejiang.PassageRecommend
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request GetRequest
+		var response Response
+		var passageRecommend bolejiang.PassageRecommend
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		if request.ID == 0 {
-			return errors.New("职位id必须填写")
+			return nil, errors.New("职位id必须填写")
 		}
 		if request.PassageRecommendId != "" {
 			ok, err := db.Get(db.Default().Where("id = ?", request.PassageRecommendId), &passageRecommend)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !ok {
-				return errors.New("该分享不存在")
+				return nil, errors.New("该分享不存在")
 			}
 			if passageRecommend.PassageId != int(request.ID) {
-				return errors.New("分享职位和当前职位不一致")
+				return nil, errors.New("分享职位和当前职位不一致")
 			}
 		} else if request.ArticleType != "" {
 			switch request.ArticleType {
@@ -56,22 +56,22 @@ func GetAction(c *gin.Context) {
 			case "profService":
 				break
 			default:
-				return errors.New("文章类型错误")
+				return nil, errors.New("文章类型错误")
 			}
 			tablename := utils.SnakeCase(request.ArticleType)
 			var article = map[string]interface{}{}
 			ok, err := db.Get(db.Default().Table(tablename).Where("id = ?", request.ArticleId), &article)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !ok {
-				return errors.New("文章不存在, 请确认文章id传输正确")
+				return nil, errors.New("文章不存在, 请确认文章id传输正确")
 			}
 			recommendAccountId := utils.IntVal(article["account_id"])
 			if recommendAccountId != 0 {
 				ok, err := db.Get(db.Default().Where("account_id = ? and passage_id = ?", recommendAccountId, request.ID), &passageRecommend)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if !ok {
 					passageRecommend.AccountId = recommendAccountId
@@ -81,7 +81,7 @@ func GetAction(c *gin.Context) {
 					passageRecommend.UpdatedTime = time.Now().Unix()
 					err = db.Default().Create(&passageRecommend).Error
 					if err != nil {
-						return err
+						return nil, err
 					}
 				}
 			}
@@ -90,7 +90,7 @@ func GetAction(c *gin.Context) {
 		accountId := services.AuthGetAccountID(c)
 		passageResponse, err := services.PassageGetFullByID(request.ID, uint32(utils.IntVal(accountId)))
 		if err != nil {
-			return err
+			return nil, err
 		}
 		response.PassageFull = passageResponse
 		passage := passageResponse.Passage
@@ -98,7 +98,7 @@ func GetAction(c *gin.Context) {
 		//获取当前用户（Common 中间件已校验并写入 context，直接复用避免重复查询）
 		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		currentAccount := *accountPtr
 		//deliver已经存在则读取deliver中的account, 若不存在，则读取传过来的推荐的account
@@ -111,24 +111,24 @@ func GetAction(c *gin.Context) {
 		}
 		ok, err := db.Get(session, &deliver)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if ok {
 			var recommendAccount bolejiang.Account
 			if deliver.RecommendAccountId != 0 {
 				_, err = db.Get(db.Default().Where("id = ?", deliver.RecommendAccountId), &recommendAccount)
 				if err != nil {
-					return err
+					return nil, err
 				}
 			}
 			if deliver.PassageRecommendId != 0 {
 				passageRecommend = bolejiang.PassageRecommend{}
 				ok, err := db.Get(db.Default().Where("passage_id = ? and id = ?", passage.ID, deliver.PassageRecommendId), &passageRecommend)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if !ok {
-					return errors.New("该职位的推荐信息无效")
+					return nil, errors.New("该职位的推荐信息无效")
 				}
 			}
 			response.RecommendAccount = accountShareInfo(recommendAccount, passageRecommend)
@@ -149,7 +149,7 @@ func GetAction(c *gin.Context) {
 				var recommendAccount bolejiang.Account
 				_, err = db.Get(db.Default().Where("id = ?", passageRecommend.AccountId), &recommendAccount)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				response.RecommendAccount = accountShareInfo(recommendAccount, passageRecommend)
 				if deliver.AccountId != passageRecommend.AccountId {
@@ -164,7 +164,7 @@ func GetAction(c *gin.Context) {
 			deliver.UpdatedTime = time.Now().Unix()
 			err = db.Default().Create(&deliver).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 			services.CountUpdatePassageRecommendByPath(deliver.GetPassageRecommendFullPath())
 		}
@@ -173,14 +173,9 @@ func GetAction(c *gin.Context) {
 		var selfPassageRecommend bolejiang.PassageRecommend
 		_, err = db.Get(db.Default().Where("account_id = ? and passage_id = ?", currentAccount.Id, request.ID), &selfPassageRecommend)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		response.SelfAccount = accountShareInfo(currentAccount, selfPassageRecommend)
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, response)
+		return response, nil
+	})
 }

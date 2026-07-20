@@ -13,11 +13,11 @@ func ListAction(c *gin.Context) {
 		Page     int    `json:"page"`
 		PageSize int    `json:"pageSize"`
 	}
-	var page *services.Page
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
 		var request Request
+		var page *services.Page
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		dao := query.ProfService.Where(query.ProfService.Status.Eq(1)).Order(query.ProfService.TimeUpdate.Desc(), query.ProfService.ID.Desc())
 		//session := db.Default().Table(bolejiang.ProfService{}).Where("status = 1").OrderBy("time_update desc, id desc")
@@ -28,21 +28,16 @@ func ListAction(c *gin.Context) {
 		}
 		count, err := dao.Count()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		page = services.NewPage(request.Page, request.PageSize)
 		//var wanteds []bolejiang.ProfService
 		wanteds, err := dao.Offset(page.Offset).Limit(page.PerPage).Find()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		page.List = wanteds
 		page.Total = int(count)
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

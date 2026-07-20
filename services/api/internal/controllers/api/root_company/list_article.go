@@ -16,15 +16,15 @@ type ListArticleRequest struct {
 }
 
 func ListArticleAction(c *gin.Context) {
-	var request ListArticleRequest
-	data := gin.H{}
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request ListArticleRequest
+		data := gin.H{}
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		rootCompany, err := query.CompanyInfo.Where(query.CompanyInfo.ID.Eq(request.ID)).First()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		list := []any{}
 		items := strings.Split(rootCompany.Articles, ",")
@@ -47,11 +47,6 @@ func ListArticleAction(c *gin.Context) {
 			}
 		}
 		data["list"] = list
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, data)
+		return data, nil
+	})
 }

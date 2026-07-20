@@ -17,11 +17,11 @@ func ApplyAction(c *gin.Context) {
 		Position       string `json:"position"`
 		HelpPlan       string `json:"helpPlan"`
 	}
-	var request Request
-	data := gin.H{}
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request Request
+		data := gin.H{}
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		/*
 			if request.Company == "" {
@@ -32,25 +32,25 @@ func ApplyAction(c *gin.Context) {
 			}
 		*/
 		if request.HelpPlan == "" {
-			return errors.New("求职计划不可为空")
+			return nil, errors.New("求职计划不可为空")
 		}
 		currentAccountId := services.AuthGetAccountID(c)
 		var helperAccount bolejiang.Account
 		ok, err := db.Get(db.Default().Where("id = ?", currentAccountId), &helperAccount)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("当前用户不存在")
+			return nil, errors.New("当前用户不存在")
 		}
 
 		var accountApply bolejiang.AccountApply
 		ok, err = db.Get(db.Default().Where("id = ?", request.AccountApplyID), &accountApply)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("求职者不存在")
+			return nil, errors.New("求职者不存在")
 		}
 
 		/*
@@ -65,7 +65,7 @@ func ApplyAction(c *gin.Context) {
 		var accountHelp bolejiang.AccountHelp
 		ok, err = db.Get(db.Default().Where("account_apply_id = ? and helper_account_id = ?", request.AccountApplyID, currentAccountId), &accountHelp)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if ok {
 			accountHelp.Company = request.Company
@@ -74,7 +74,7 @@ func ApplyAction(c *gin.Context) {
 			accountHelp.UpdatedTime = time.Now().Unix()
 			err = db.Default().Model(&accountHelp).Where("id = ?", accountHelp.Id).Select("company", "position", "help_plan", "updated_time").Updates(accountHelp).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			accountHelp.AccountApplyId = request.AccountApplyID
@@ -86,14 +86,9 @@ func ApplyAction(c *gin.Context) {
 			accountHelp.UpdatedTime = time.Now().Unix()
 			err := db.Default().Create(&accountHelp).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, data)
+		return data, nil
+	})
 }

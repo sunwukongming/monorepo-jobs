@@ -52,10 +52,10 @@ type Apply struct {
 }
 
 func UpdateAction(c *gin.Context) {
-	var request UpdateRequest
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request UpdateRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		request.Name = utils.StringTrim(request.Name)
 		//request.Mobile = utils.StringTrim(request.Mobile)
@@ -65,10 +65,10 @@ func UpdateAction(c *gin.Context) {
 		var account bolejiang.Account
 		ok, err := db.Get(db.Default().Where("id = ?", accountId), &account)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 		cols := []string{}
 		if utils.StringTrim(request.Name) != "" && account.Name != utils.StringTrim(request.Name) {
@@ -138,17 +138,12 @@ func UpdateAction(c *gin.Context) {
 		if len(cols) > 0 {
 			err = db.Default().Model(&account).Where("id = ?", account.Id).Select(cols).Updates(account).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 		if toUpdateRelevant {
 			services.AccountUpdateRelevant(account)
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, nil)
+		return nil, nil
+	})
 }

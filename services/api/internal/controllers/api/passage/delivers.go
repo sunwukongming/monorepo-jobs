@@ -14,11 +14,11 @@ type DeliversRequest struct {
 }
 
 func DeliversAction(c *gin.Context) {
-	var request DeliversRequest
-	var page *services.Page
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request DeliversRequest
+		var page *services.Page
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		page = services.NewPage(request.Page, request.PageSize)
 		accountId := services.AuthGetAccountID(c)
@@ -30,18 +30,13 @@ func DeliversAction(c *gin.Context) {
 		)
 		total, err := dao.Count()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		page.SetTotal(int(total))
 		page.List, err = dao.Offset(page.Offset).Limit(page.PerPage).Find()
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

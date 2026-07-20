@@ -15,51 +15,46 @@ func GetArticleUnlikeAction(model interface{}) gin.HandlerFunc {
 		type Request struct {
 			ID int `json:"id"`
 		}
-		var instance = map[string]interface{}{}
-		err := func() error {
+		services.Handle(c, func() (interface{}, error) {
+			var instance = map[string]interface{}{}
 			var request Request
 			if err := c.ShouldBindJSON(&request); err != nil {
-				return err
+				return nil, err
 			}
 			ok, err := db.Get(db.Default().Table(db.TableName(model)).Where("id = ?", request.ID), &instance)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !ok {
-				return errors.New("文章数据不存在")
+				return nil, errors.New("文章数据不存在")
 			}
 			accountId := services.AuthGetAccountID(c)
 			var account bolejiang.Account
 			ok, err = db.Get(db.Default().Where("id = ?", accountId), &account)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !ok {
-				return errors.New("账号不存在")
+				return nil, errors.New("账号不存在")
 			}
 
 			var articleLike bolejiang.ArticleLike
 			ok, err = db.Get(db.Default().Where("article_table = ? and article_id = ? and account_id = ?", tableName, request.ID, account.Id), &articleLike)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !ok {
-				return errors.New("你还未点过赞，无法取消点赞")
+				return nil, errors.New("你还未点过赞，无法取消点赞")
 			}
 			err = db.Default().Where("id = ?", articleLike.Id).Delete(&articleLike).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 			err = db.Default().Exec("update "+tableName+" as a set like_count = (select count(*) from article_like where article_table = ? and article_id = ?) where id = ?", tableName, request.ID, request.ID).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
-			return nil
-		}()
-		if err != nil {
-			services.ResponseError(c, -1, err.Error(), nil)
-			return
-		}
-		services.ResponseSuccess(c, nil)
+			return nil, nil
+		})
 	}
 }

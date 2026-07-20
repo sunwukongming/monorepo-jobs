@@ -16,11 +16,11 @@ func ListSelfRecommendAction(c *gin.Context) {
 		PageSize int    `json:"pageSize"`
 	}
 
-	var page *services.Page
-	var request Request
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var page *services.Page
+		var request Request
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		accountId := services.AuthGetAccountID(c)
 		var delivers []bolejiang.Deliver
@@ -37,7 +37,7 @@ func ListSelfRecommendAction(c *gin.Context) {
 		}
 		err := page.Execute(query, &delivers)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		passageIDs := make([]uint32, 0, len(delivers))
@@ -46,7 +46,7 @@ func ListSelfRecommendAction(c *gin.Context) {
 		}
 		passageFulls, err := services.PassageListFullByIDs(passageIDs, uint32(utils.IntVal(accountId)))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		rows := []interface{}{}
@@ -61,11 +61,6 @@ func ListSelfRecommendAction(c *gin.Context) {
 			rows = append(rows, row)
 		}
 		page.List = rows
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

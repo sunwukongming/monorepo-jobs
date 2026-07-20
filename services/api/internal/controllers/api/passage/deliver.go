@@ -16,52 +16,52 @@ func DeliverAction(c *gin.Context) {
 		ID                 int `json:"id"`
 		PassageRecommendId int `json:"passageRecommendId"`
 	}
-	var request DeliverRequest
-	var deliver bolejiang.Deliver
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request DeliverRequest
+		var deliver bolejiang.Deliver
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		var passage bolejiang.Passage
 		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &passage)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("职位数据不存在")
+			return nil, errors.New("职位数据不存在")
 		}
 		accountId := services.AuthGetAccountID(c)
 		if accountId == "" {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 		// Common 中间件已校验并写入 context，直接复用避免重复查询
 		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		account := *accountPtr
 		if strings.Trim(account.Mobile, " ") == "" {
-			return errors.New("您的账号手机号未填写，请进入个人中心填写手机号")
+			return nil, errors.New("您的账号手机号未填写，请进入个人中心填写手机号")
 		}
 		//查询手机号是否存在
 		var deliverCount int64
 		err = db.Default().Model(&bolejiang.Deliver{}).Where("passage_id = ? and mobile = ? and is_real = 1", passage.Id, account.Mobile).Count(&deliverCount).Error
 		if err != nil {
-			return err
+			return nil, err
 		}
 		ok = deliverCount > 0
 		if ok {
 			//如果投递存在且是真投递
 			if account.Id != 0 {
-				return errors.New("您已经投递过该职位，请不要重新投递")
+				return nil, errors.New("您已经投递过该职位，请不要重新投递")
 			} else {
-				return errors.New("您已经被人投递过该职位，请不要重新投递")
+				return nil, errors.New("您已经被人投递过该职位，请不要重新投递")
 			}
 		}
 
 		ok, err = db.Get(db.Default().Where("passage_id = ? and mobile = ? and is_real = 0", passage.Id, account.Mobile), &deliver)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if ok {
 			deliver.IsReal = 1
@@ -72,7 +72,7 @@ func DeliverAction(c *gin.Context) {
 			deliver.UpdatedTime = time.Now().Unix()
 			err := db.Default().Model(&deliver).Where("id = ?", deliver.Id).Select("is_real", "progress", "resume_url", "deliver_time", "updated_time").Updates(deliver).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			deliver.PassageId = passage.Id
@@ -87,13 +87,13 @@ func DeliverAction(c *gin.Context) {
 			if request.PassageRecommendId != 0 {
 				ok, err := db.Get(db.Default().Where("id = ?", request.PassageRecommendId), &passageRecommend)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if !ok {
-					return errors.New("推荐职位不存在")
+					return nil, errors.New("推荐职位不存在")
 				}
 				if passage.Id != passageRecommend.PassageId {
-					return errors.New("职位和推荐不一致")
+					return nil, errors.New("职位和推荐不一致")
 				}
 				deliver.PassageRecommendId = passageRecommend.Id
 				deliver.PassageRecommendPath = passageRecommend.Path
@@ -112,7 +112,7 @@ func DeliverAction(c *gin.Context) {
 			deliver.UpdatedTime = time.Now().Unix()
 			err = db.Default().Create(&deliver).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -122,11 +122,6 @@ func DeliverAction(c *gin.Context) {
 			services.CountUpdateAccount(deliver.RecommendAccountId)
 		}
 		services.CountUpdateAccount(deliver.AccountId)
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, deliver)
+		return deliver, nil
+	})
 }

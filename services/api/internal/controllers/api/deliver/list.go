@@ -18,17 +18,17 @@ func ListAction(c *gin.Context) {
 		IsSelf   int    `json:"isSelf"`
 	}
 
-	var page *services.Page
-	var request Request
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var page *services.Page
+		var request Request
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		accountId := services.AuthGetAccountID(c)
 		//获取当前用户（Common 中间件已校验并写入 context，直接复用避免重复查询）
 		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		currentAccount := *accountPtr
 		// 仅取投递(deliver)本表数据；职位详情由下方 PassageListFullByIDs 单独补全。
@@ -51,7 +51,7 @@ func ListAction(c *gin.Context) {
 		}
 		err = page.Execute(query, &delivers)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		passageIDs := make([]uint32, 0, len(delivers))
@@ -60,7 +60,7 @@ func ListAction(c *gin.Context) {
 		}
 		passageFulls, err := services.PassageListFullByIDs(passageIDs, uint32(utils.IntVal(accountId)))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		rows := []interface{}{}
@@ -75,11 +75,6 @@ func ListAction(c *gin.Context) {
 			rows = append(rows, row)
 		}
 		page.List = rows
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

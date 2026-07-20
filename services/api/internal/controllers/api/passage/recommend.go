@@ -17,34 +17,34 @@ func RecommendAction(c *gin.Context) {
 		ID                       int `json:"id"`
 		ParentPassageRecommendId int `json:"parentPassageRecommendId"`
 	}
-	var request RecommendRequest
-	var passageRecommend bolejiang.PassageRecommend
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request RecommendRequest
+		var passageRecommend bolejiang.PassageRecommend
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		var passage bolejiang.Passage
 		ok, err := db.Get(db.Default().Where("id = ?", request.ID), &passage)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("职位数据不存在")
+			return nil, errors.New("职位数据不存在")
 		}
 		accountId := services.AuthGetAccountID(c)
 		if accountId == "" {
-			return errors.New("当前账号未登录")
+			return nil, errors.New("当前账号未登录")
 		}
 		ok, err = db.Get(db.Default().Where("account_id = ? and passage_id = ?", accountId, request.ID), &passageRecommend)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if ok {
 			//如果存在则不更改任何数据
 			passageRecommend.UpdatedTime = time.Now().Unix()
 			err = db.Default().Model(&passageRecommend).Where("id = ?", passageRecommend.Id).Select("updated_time").Updates(passageRecommend).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			//如果不存在则创建一个推荐数据
@@ -52,10 +52,10 @@ func RecommendAction(c *gin.Context) {
 				var parentRecommend bolejiang.PassageRecommend
 				ok, err := db.Get(db.Default().Where("id = ?", request.ParentPassageRecommendId), &parentRecommend)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if !ok {
-					return errors.New("推荐信息不存在")
+					return nil, errors.New("推荐信息不存在")
 				}
 				passageRecommend.Path = fmt.Sprintf("%s-%d", parentRecommend.Path, parentRecommend.Id)
 			} else {
@@ -68,21 +68,16 @@ func RecommendAction(c *gin.Context) {
 			passageRecommend.UpdatedTime = time.Now().Unix()
 			err = db.Default().Create(&passageRecommend).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 			passageRecommend.PathFull = passageRecommend.GetFullPath()
 			err := db.Default().Model(&passageRecommend).Where("id = ?", passageRecommend.Id).Select("path_full").Updates(passageRecommend).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, gin.H{
-		"passageRecommendId": passageRecommend.Id,
+		return gin.H{
+			"passageRecommendId": passageRecommend.Id,
+		}, nil
 	})
 }

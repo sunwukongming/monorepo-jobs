@@ -17,19 +17,19 @@ func GetArticleDetailAction(model interface{}) gin.HandlerFunc {
 		type Request struct {
 			ID int `json:"id"`
 		}
-		var instance = map[string]interface{}{}
-		data := map[string]any{}
-		err := func() error {
+		services.Handle(c, func() (interface{}, error) {
+			var instance = map[string]interface{}{}
+			data := map[string]any{}
 			var request Request
 			if err := c.ShouldBindJSON(&request); err != nil {
-				return err
+				return nil, err
 			}
 			ok, err := db.Get(db.Default().Table(db.TableName(model)).Where("id = ?", request.ID), &instance)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !ok {
-				return errors.New("数据不存在")
+				return nil, errors.New("数据不存在")
 			}
 			for k, v := range instance {
 				data[k] = v
@@ -41,7 +41,7 @@ func GetArticleDetailAction(model interface{}) gin.HandlerFunc {
 					uint32(utils.IntVal(services.AuthGetAccountID(c))),
 				)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				data["passages"] = passages
 			}
@@ -49,19 +49,14 @@ func GetArticleDetailAction(model interface{}) gin.HandlerFunc {
 			var articleLike bolejiang.ArticleLike
 			ok, err = db.Get(db.Default().Where("article_table = ? and article_id = ? and account_id = ?", tableName, request.ID, accountId), &articleLike)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			data["isLike"] = ok
 			err = db.Default().Exec("update "+tableName+" set view_count = view_count + 1 where id = ?", request.ID).Error
 			if err != nil {
-				return err
+				return nil, err
 			}
-			return nil
-		}()
-		if err != nil {
-			services.ResponseError(c, -1, err.Error(), nil)
-			return
-		}
-		services.ResponseSuccess(c, data)
+			return data, nil
+		})
 	}
 }

@@ -13,22 +13,22 @@ func DetailAction(c *gin.Context) {
 	type Request struct {
 		ID string `json:"id"`
 	}
-	var request Request
-	var deliver bolejiang.Deliver
-	var passage bolejiang.Passage
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request Request
+		var deliver bolejiang.Deliver
+		var passage bolejiang.Passage
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		//当前账号
 		accountId := services.AuthGetAccountID(c)
 		if accountId == "" {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 		// Common 中间件已校验并写入 context，直接复用避免重复查询
 		accountPtr, err := services.AuthGetAccountOrError(c)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		currentAccount := *accountPtr
 
@@ -36,23 +36,18 @@ func DetailAction(c *gin.Context) {
 		ok, err := db.Get(db.Default().
 			Where("id = ? and recommend_account_id = ? and is_real = 1", request.ID, currentAccount.Id), &deliver)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("该投递不存在")
+			return nil, errors.New("该投递不存在")
 		}
 		_, err = db.Get(db.Default().Where("id = ?", deliver.PassageId), &passage)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, gin.H{
-		"deliver": deliver,
-		"passage": passage,
+		return gin.H{
+			"deliver": deliver,
+			"passage": passage,
+		}, nil
 	})
 }

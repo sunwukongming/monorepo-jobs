@@ -9,11 +9,11 @@ import (
 )
 
 func ListAction(c *gin.Context) {
-	var request ListRequest
-	var page *services.Page
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request ListRequest
+		var page *services.Page
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		if request.DestCity == "全国" {
 			request.DestCity = ""
@@ -37,13 +37,8 @@ func ListAction(c *gin.Context) {
 		page = services.NewPage(request.Page, request.PageSize)
 		err := page.Execute(session.Order("updated_time desc"), &applies)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

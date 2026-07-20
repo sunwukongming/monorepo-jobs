@@ -11,38 +11,38 @@ import (
 )
 
 func UpdateProjectAction(c *gin.Context) {
-	type Request struct {
-		ID          string `json:"id"`
-		Name        string `json:"name"`
-		Role        string `json:"role"`
-		StartTime   int64  `json:"startTime"`
-		EndTime     int64  `json:"endTime"`
-		Description string `json:"description"`
-		Performance string `json:"performance"`
-		Link        string `json:"link"`
-	}
-	var request Request
-	var accountProject bolejiang.AccountProject
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		type Request struct {
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			Role        string `json:"role"`
+			StartTime   int64  `json:"startTime"`
+			EndTime     int64  `json:"endTime"`
+			Description string `json:"description"`
+			Performance string `json:"performance"`
+			Link        string `json:"link"`
+		}
+		var request Request
+		var accountProject bolejiang.AccountProject
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		id := services.AuthGetAccountID(c)
 		var user bolejiang.Account
 		ok, err := db.Get(db.Default().Where("id = ?", id), &user)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("用户不存在")
+			return nil, errors.New("用户不存在")
 		}
 
 		ok, err = db.Get(db.Default().Where("id = ? and account_id = ?", request.ID, user.Id), &accountProject)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("项目信息不存在")
+			return nil, errors.New("项目信息不存在")
 		}
 
 		accountProject.AccountId = user.Id
@@ -56,13 +56,8 @@ func UpdateProjectAction(c *gin.Context) {
 		accountProject.UpdatedTime = time.Now().Unix()
 		err = db.Default().Model(&accountProject).Where("id = ?", accountProject.Id).Select("*").Updates(accountProject).Error
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, accountProject)
+		return accountProject, nil
+	})
 }

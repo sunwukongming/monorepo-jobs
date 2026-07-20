@@ -14,11 +14,11 @@ func GetArticlesAction(model interface{}) gin.HandlerFunc {
 			Page     int    `json:"page"`
 			PageSize int    `json:"pageSize"`
 		}
-		var page *services.Page
-		err := func() error {
+		services.Handle(c, func() (interface{}, error) {
+			var page *services.Page
 			var request Request
 			if err := c.ShouldBindJSON(&request); err != nil {
-				return err
+				return nil, err
 			}
 			session := db.Default().Table(db.TableName(model)).Where("status = 0").Order("is_top desc, time_update desc, id desc")
 			keyword := "%" + request.Keyword + "%"
@@ -29,7 +29,7 @@ func GetArticlesAction(model interface{}) gin.HandlerFunc {
 			var models []map[string]interface{}
 			err := page.Execute(session, &models)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			list := []map[string]any{}
 			for i := range models {
@@ -40,12 +40,7 @@ func GetArticlesAction(model interface{}) gin.HandlerFunc {
 				list = append(list, model)
 			}
 			page.List = list
-			return nil
-		}()
-		if err != nil {
-			services.ResponseError(c, -1, err.Error(), nil)
-			return
-		}
-		services.ResponseSuccess(c, page)
+			return page, nil
+		})
 	}
 }

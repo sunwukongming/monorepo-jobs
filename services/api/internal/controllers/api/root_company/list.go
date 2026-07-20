@@ -19,11 +19,11 @@ type ListRequest struct {
 }
 
 func ListAction(c *gin.Context) {
-	var request ListRequest
-	var page *services.Page
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request ListRequest
+		var page *services.Page
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		keyword := "%" + request.Keyword + "%"
 		dao := query.CompanyInfo.Where(
@@ -51,23 +51,18 @@ func ListAction(c *gin.Context) {
 		page = services.NewPage(request.Page, request.PageSize)
 		total, err := dao.Count()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		page.SetTotal(int(total))
 		companies, err := dao.Offset(page.Offset).Limit(page.PerPage).Find()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		companyFulls, err := services.RootCompanyFullFind(companies)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		page.List = companyFulls
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, page)
+		return page, nil
+	})
 }

@@ -15,26 +15,21 @@ type LoginRequest struct {
 }
 
 func LoginAction(c *gin.Context) {
-	var request LoginRequest
-	data := gin.H{}
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
+		var request LoginRequest
+		data := gin.H{}
 		if err := c.ShouldBindJSON(&request); err != nil {
-			return err
+			return nil, err
 		}
 		var user bolejiang.Account
 		ok, err := db.Get(db.Default().Where("mobile = ?", request.Mobile), &user)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return errors.New("用户未注册")
+			return nil, errors.New("用户未注册")
 		}
 		data["token"], _ = utils.GetToken(user.Id)
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, data)
+		return data, nil
+	})
 }

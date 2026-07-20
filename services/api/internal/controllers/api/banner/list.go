@@ -9,19 +9,11 @@ import (
 )
 
 func ListAction(c *gin.Context) {
-	data := gin.H{}
-	err := func() error {
+	services.Handle(c, func() (interface{}, error) {
 		banners := make([]bolejiang.Banner, 0)
-		err := db.Default().Find(&banners).Error
-		if err != nil {
-			return err
+		if err := db.Default().Find(&banners).Error; err != nil {
+			return nil, err
 		}
-		data["list"] = banners
-		return nil
-	}()
-	if err != nil {
-		services.ResponseError(c, -1, err.Error(), nil)
-		return
-	}
-	services.ResponseSuccess(c, data)
+		return gin.H{"list": banners}, nil
+	})
 }

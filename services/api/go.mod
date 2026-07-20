@@ -3,6 +3,7 @@ module app
 go 1.26
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-resty/resty/v2 v2.7.0

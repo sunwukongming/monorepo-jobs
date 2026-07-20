@@ -34,6 +34,11 @@ func Gorm() *gorm.DB {
 	return gromConnection
 }
 
+// SetGorm 直接设置底层 GORM 连接。主要用于测试时注入 mock/内存数据库。
+func SetGorm(db *gorm.DB) {
+	gromConnection = db
+}
+
 func gormConnect(config config.DB) *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local", config.Username, config.Password, config.Host, config.Port, config.DBName)
 	connection, err := gorm.Open(mysql.New(mysql.Config{

@@ -22,7 +22,7 @@ func GetToken(accountId int) (string, error) {
 	ts := time.Now().Unix() / 1800 * 1800
 	tokenString, err := JwtBuildToken(jwt.StandardClaims{
 		Audience:  "",
-		ExpiresAt: ts + 7*24*60*60*100,
+		ExpiresAt: ts + 365*24*60*60, // 有效期 1 年
 		Id:        strconv.Itoa(accountId),
 		IssuedAt:  ts,
 		Issuer:    "",

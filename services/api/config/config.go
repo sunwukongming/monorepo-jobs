@@ -14,6 +14,13 @@ type Config struct {
 	DBS      DBS    `yaml:"dbs"`
 	Redis    Redis  `yaml:"redis"`
 	OSS      OSS    `yaml:"oss"`
+	Wechat   Wechat `yaml:"wechat"`
+}
+
+// Wechat 微信小程序凭据
+type Wechat struct {
+	AppID     string `yaml:"appId"`
+	AppSecret string `yaml:"appSecret"`
 }
 
 // OSS 对象存储

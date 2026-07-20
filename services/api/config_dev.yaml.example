@@ -25,3 +25,7 @@ oss:
   accessKeyId: your-access-key-id
   accessKeySecret: your-access-key-secret
   bucket: your-bucket
+
+wechat:
+  appId: your-wechat-appid
+  appSecret: your-wechat-appsecret

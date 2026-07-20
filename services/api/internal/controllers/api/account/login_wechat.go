@@ -26,8 +26,8 @@ func LoginWechatAction(c *gin.Context) {
 		}
 		client := resty.New()
 		resp, err := client.R().SetQueryParams(map[string]string{
-			"appid":      services.WechatAppId,
-			"secret":     services.WechatAppsecret,
+			"appid":      services.WechatAppID(),
+			"secret":     services.WechatAppSecret(),
 			"js_code":    request.Code,
 			"grant_type": "authorization_code",
 		}).Get("https://api.weixin.qq.com/sns/jscode2session")

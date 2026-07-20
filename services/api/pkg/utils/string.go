@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 	_ "time/tzdata"
 	"unicode"
@@ -88,9 +89,14 @@ func FirstToLower(s string) string {
 }
 
 // UniqueID 生成唯一id
+var uniqueSeq uint64
+
+// UniqueID 返回一个唯一字符串（纳秒时间戳 + 单调自增序号）。
+// 追加自增序号可保证同一纳秒内的连续调用也不会碰撞。
 func UniqueID() string {
 	t := time.Now().UnixNano()
-	return strconv.FormatInt(t, 36)
+	n := atomic.AddUint64(&uniqueSeq, 1)
+	return strconv.FormatInt(t, 36) + strconv.FormatUint(n, 36)
 }
 
 // StringSub 字符串截取

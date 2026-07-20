@@ -1,6 +1,7 @@
 package router_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -51,4 +52,58 @@ func TestSmoke_BannerList(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assertEnvelope(t, w, 0)
+}
+
+// 核心免鉴权、无外部网络端点的响应外壳回归网：
+// 不预置 sqlmock 期望——未预期的查询会返回 error（而非 panic），handler 应转成
+// 合法的错误信封。因此本测试只校验「不 panic + 信封结构合法」，不校验业务 code。
+// 任何 handler 重构（如 ③）若破坏响应管道或在空输入下 panic，这里会立刻变红。
+func TestSmoke_CoreRoutesEnvelope(t *testing.T) {
+	type route struct {
+		method string
+		path   string
+	}
+	routes := []route{
+		{http.MethodGet, "/api/dictionary/cities"},
+		{http.MethodGet, "/api/dictionary/industries"},
+		{http.MethodGet, "/api/dictionary/positionTags"},
+		{http.MethodPost, "/api/passage/list"},
+		{http.MethodPost, "/api/passage/getOrigin"},
+		{http.MethodPost, "/api/company/get"},
+		{http.MethodPost, "/api/company/list"},
+		{http.MethodPost, "/api/company/listMember"},
+		{http.MethodPost, "/api/rootCompany/list"},
+		{http.MethodPost, "/api/apply/list"},
+		{http.MethodPost, "/api/apply/detail"},
+		{http.MethodPost, "/api/apply/listLike"},
+		{http.MethodPost, "/api/wanted/list"},
+		{http.MethodPost, "/api/wanted/get"},
+	}
+	for _, rt := range routes {
+		t.Run(rt.method+" "+rt.path, func(t *testing.T) {
+			r, _ := testutil.Setup(t)
+			req := httptest.NewRequest(rt.method, rt.path, bytes.NewReader([]byte("{}")))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+			assertEnvelopeShape(t, w)
+		})
+	}
+}
+
+// assertEnvelopeShape 只校验响应是合法 JSON 且带统一外壳字段（不限定 code 值）。
+func assertEnvelopeShape(t *testing.T, w *httptest.ResponseRecorder) {
+	t.Helper()
+	if w.Code != http.StatusOK {
+		t.Fatalf("HTTP status = %d, want 200; body=%s", w.Code, w.Body.String())
+	}
+	var body map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("响应非合法 JSON: %v; body=%s", err, w.Body.String())
+	}
+	for _, k := range []string{"code", "message", "data", "timestamp"} {
+		if _, ok := body[k]; !ok {
+			t.Errorf("响应缺少字段 %q: %s", k, w.Body.String())
+		}
+	}
 }
